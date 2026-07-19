@@ -110,9 +110,16 @@ function RealRoomLobby({ roomId }: { roomId: string }) {
       {live && (
         <div className={styles.players}>
           {live.players.map((player) => (
-            <span key={player.id} className={styles.playerPill}>
+            <span
+              key={player.id}
+              title={player.connected === false ? 'Втратив звʼязок' : undefined}
+              className={`${styles.playerPill} ${
+                player.connected === false ? styles.playerOffline : ''
+              }`}
+            >
               {player.isHost && '👑 '}
               {player.nickname}
+              {player.connected === false && ' 📴'}
             </span>
           ))}
         </div>

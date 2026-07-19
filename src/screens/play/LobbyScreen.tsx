@@ -94,11 +94,15 @@ export function LobbyScreen() {
           ? game.room.players.map((player) => (
               <span
                 key={player.id}
-                className={`${styles.playerPill} ${player.id === game.playerId ? styles.playerYou : ''}`}
+                title={player.connected === false ? 'Втратив звʼязок' : undefined}
+                className={`${styles.playerPill} ${player.id === game.playerId ? styles.playerYou : ''} ${
+                  player.connected === false ? styles.playerOffline : ''
+                }`}
               >
                 {player.isHost && '👑 '}
                 {player.nickname}
                 {player.id === game.playerId && ' (ви)'}
+                {player.connected === false && ' 📴'}
               </span>
             ))
           : demo.players.map((player) => (

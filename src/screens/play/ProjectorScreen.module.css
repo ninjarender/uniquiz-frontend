@@ -76,6 +76,12 @@
   animation: var(--animate-card-in);
 }
 
+/* Lost connection (player_connection, 0061): dimmed but still in the list. */
+.playerOffline {
+  background: rgb(255 255 255 / 0.06);
+  color: rgb(255 255 255 / 0.45);
+}
+
 .title { position: relative; font-size: 30px; font-weight: 800; }
 
 .podium {
