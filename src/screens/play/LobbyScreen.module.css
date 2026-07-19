@@ -75,3 +75,14 @@
 }
 
 .startBtn { position: relative; }
+
+.leaveLink {
+  position: relative;
+  margin-top: 6px;
+  border: none;
+  background: none;
+  font-size: 12px;
+  color: rgb(255 255 255 / 0.55);
+  cursor: pointer;
+}
+.leaveLink:hover { color: rgb(255 255 255 / 0.85); }

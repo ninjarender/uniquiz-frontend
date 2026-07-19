@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DEMO_BANK_NAME, QUIZ_LEN } from '../../demo/data';
 import { useDemoGame } from '../../demo/engine';
-import { useGame } from '../../shared/game';
+import { clearPlayerSession, useGame } from '../../shared/game';
 import { Button } from '../../shared/controls';
 import { FloatingShapes, HOME_SHAPES, Logo } from '../../shared/ui';
 import styles from './LobbyScreen.module.css';
@@ -41,9 +41,28 @@ export function LobbyScreen() {
     return () => clearInterval(timer);
   }, []);
 
+  // Kicked between events (e.g. the room died) -> silently back to joining.
+  useEffect(() => {
+    if (!real) return;
+    return game.interceptErrors((wsError) => {
+      if (wsError.code !== 'not_a_member') return false;
+      const roomId = game.room?.roomId;
+      if (roomId) clearPlayerSession(roomId);
+      navigate(roomId ? `/join/${roomId}` : '/play', { replace: true });
+      return true;
+    });
+  }, [real, game.interceptErrors, game.room?.roomId, navigate]);
+
   const start = () => {
     demo.startGame();
     navigate('/play/round');
+  };
+
+  /** leave_room + wipe the stored session; back to the join page (0054). */
+  const leaveLobby = () => {
+    const roomId = game.room?.roomId;
+    game.leave();
+    navigate(roomId ? `/join/${roomId}` : '/play', { replace: true });
   };
 
   const meta = game.room
@@ -88,7 +107,14 @@ export function LobbyScreen() {
       <div className={styles.waiting}>очікуємо гравців{dots}</div>
 
       {real ? (
-        <div className={styles.note}>Гру запускає хост, коли всі зібралися</div>
+        <>
+          <div className={styles.note}>Гру запускає хост, коли всі зібралися</div>
+          {game.room?.status === 'waiting' && (
+            <button type="button" className={styles.leaveLink} onClick={leaveLobby}>
+              ← Вийти з кімнати
+            </button>
+          )}
+        </>
       ) : (
         <>
           <Button
