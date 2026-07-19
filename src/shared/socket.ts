@@ -36,10 +36,11 @@ export function connectSocket(): GameSocket {
   return shared;
 }
 
-/** Tears the connection down (leaving the game entirely, task 0054). */
+/**
+ * Drops the connection (leaving the game, room closed). The instance and
+ * its listeners stay - GameProvider registers handlers once per mount, and
+ * a later join/rejoin reconnects the same socket.
+ */
 export function closeSocket(): void {
-  if (!socket) return;
-  socket.removeAllListeners();
-  socket.disconnect();
-  socket = null;
+  socket?.disconnect();
 }

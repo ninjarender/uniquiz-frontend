@@ -15,6 +15,7 @@ import type {
   GameOverPayload,
   GameStartedPayload,
   JoinRoomPayload,
+  RoomClosedPayload,
   RoomState,
   RoundResultPayload,
   ServerToClientEvents,
@@ -97,6 +98,8 @@ interface GameContextValue {
   gameOver: GameOverPayload | null;
   /** Local deadline (ms) of the lobby timeout warning, null - no warning (0064). */
   closingAt: number | null;
+  /** The room was closed by the server; session already wiped (0065). */
+  roomClosed: RoomClosedPayload | null;
   /** Last unconsumed protocol error (task 0070 maps codes to UI actions). */
   lastError: WsErrorPayload | null;
 
@@ -122,6 +125,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [lastRoundResult, setLastRoundResult] = useState<RoundResultPayload | null>(null);
   const [gameOver, setGameOver] = useState<GameOverPayload | null>(null);
   const [closingAt, setClosingAt] = useState<number | null>(null);
+  const [roomClosed, setRoomClosed] = useState<RoomClosedPayload | null>(null);
   const [lastError, setLastError] = useState<WsErrorPayload | null>(null);
   const interceptors = useRef<WsErrorInterceptor[]>([]);
   /** Room this tab is in - for the automatic rejoin on reconnect (0053). */
@@ -210,6 +214,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
       room_closing_soon: ({ closesInSeconds }) => {
         setClosingAt(Date.now() + closesInSeconds * 1000);
       },
+      room_closed: (payload) => {
+        // The room is gone: wipe the seat, drop the connection, let the UI
+        // show a human explanation instead of a dead lobby (task 0065).
+        const roomId = roomIdRef.current;
+        if (roomId) clearPlayerSession(roomId);
+        roomIdRef.current = null;
+        setRoomClosed(payload);
+        setRoom(null);
+        setPlayerId(null);
+        setGameStarted(null);
+        setCurrentQuestion(null);
+        setLastAnswerAck(null);
+        setLastRoundResult(null);
+        setGameOver(null);
+        setClosingAt(null);
+        closeSocket();
+      },
       game_started: (payload) => {
         setGameStarted(payload);
         setLastAnswerAck(null);
@@ -281,6 +302,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const join = useCallback((payload: JoinRoomPayload) => {
+    setRoomClosed(null);
     connectSocket().emit('join_room', payload);
   }, []);
 
@@ -289,6 +311,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const session = getPlayerSession(roomId);
     if (!session) return false;
     roomIdRef.current = roomId;
+    setRoomClosed(null);
     setPlayerId(session.playerId);
     connectSocket().emit('rejoin_room', { roomId, ...session });
     return true;
@@ -341,6 +364,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       lastRoundResult,
       gameOver,
       closingAt,
+      roomClosed,
       lastError,
       join,
       rejoin,
@@ -350,7 +374,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       syncTime,
       interceptErrors,
     }),
-    [room, playerId, connected, gameStarted, currentQuestion, lastAnswerAck, lastRoundResult, gameOver, closingAt, lastError, join, rejoin, leave, startGame, submitAnswer, syncTime, interceptErrors],
+    [room, playerId, connected, gameStarted, currentQuestion, lastAnswerAck, lastRoundResult, gameOver, closingAt, roomClosed, lastError, join, rejoin, leave, startGame, submitAnswer, syncTime, interceptErrors],
   );
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

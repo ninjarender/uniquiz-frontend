@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { DEMO_BANK_NAME, QUIZ_LEN } from '../../demo/data';
 import { useDemoGame } from '../../demo/engine';
 import { START_ERROR_TEXT, clearPlayerSession, useGame } from '../../shared/game';
@@ -22,10 +22,13 @@ export function LobbyScreen() {
   const real = game.room !== null;
   const me = game.room?.players.find((player) => player.id === game.playerId);
 
-  // No join happened (deep link) -> back to the join screen.
+  // No join happened (deep link) -> back to the join screen. A just-closed
+  // room keeps the screen: the player reads why instead of a silent bounce.
   useEffect(() => {
-    if (!real && !demo.nickname) navigate('/play', { replace: true });
-  }, [real, demo.nickname, navigate]);
+    if (!real && !demo.nickname && !game.roomClosed) {
+      navigate('/play', { replace: true });
+    }
+  }, [real, demo.nickname, game.roomClosed, navigate]);
 
   // Bots trickle into the demo lobby only.
   useEffect(() => {
@@ -97,6 +100,27 @@ export function LobbyScreen() {
     game.leave();
     navigate(roomId ? `/join/${roomId}` : '/play', { replace: true });
   };
+
+  // The server closed the room (task 0065): a human dead-end instead of a
+  // frozen lobby - the session is already wiped by the provider.
+  if (game.roomClosed) {
+    return (
+      <div className={`grad-bg ${styles.screen}`}>
+        <FloatingShapes shapes={HOME_SHAPES} />
+        <Logo size={26} />
+        <div className={styles.closedCard}>
+          <div className={styles.closedTitle}>😕 Кімнату закрито</div>
+          <div className={styles.note}>
+            {game.roomClosed.reason === 'lobby_timeout'
+              ? 'Лобі простояло надто довго без старту гри.'
+              : 'Кімната більше не існує.'}{' '}
+            Попросіть хоста створити нову кімнату.
+          </div>
+          <Link to="/" className={styles.closedLink}>На головну</Link>
+        </div>
+      </div>
+    );
+  }
 
   const meta = game.room
     ? `${game.room.bankName} · ${game.room.settings.mode === 'solo' ? 'Solo' : 'Multiplayer'} · ${game.room.settings.questionCount} запитань`

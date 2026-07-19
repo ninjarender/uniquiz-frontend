@@ -25,6 +25,7 @@ const PROJECTOR_SHAPES: ShapeSpec[] = [
 function RealRoomLobby({ roomId }: { roomId: string }) {
   const { toast } = useToast();
   const game = useGame();
+  const navigate = useNavigate();
   const [room, setRoom] = useState<RoomPublicInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
@@ -51,7 +52,8 @@ function RealRoomLobby({ roomId }: { roomId: string }) {
   // Take the host seat: resume the stored session (reload) or a fresh
   // join_room with the creator's token and nickname from the room form.
   useEffect(() => {
-    if (live) return;
+    // A closed room is gone - never try to take the seat back (0065).
+    if (live || game.roomClosed) return;
     const hostToken = getHostToken(roomId);
     if (!hostToken) return;
     if (!game.rejoin(roomId)) {
@@ -61,7 +63,7 @@ function RealRoomLobby({ roomId }: { roomId: string }) {
         hostToken,
       });
     }
-  }, [roomId, live, game.rejoin, game.join]);
+  }, [roomId, live, game.roomClosed, game.rejoin, game.join]);
 
   // start_game rejections land here as toasts with human wording.
   useEffect(() => {
@@ -81,6 +83,20 @@ function RealRoomLobby({ roomId }: { roomId: string }) {
       toast('Не вдалося скопіювати — виділіть посилання вручну');
     }
   };
+
+  // The lobby idled past the timeout (task 0065): explain and lead back.
+  if (game.roomClosed) {
+    return (
+      <>
+        <div className={styles.joinLine}>
+          😕 Кімнату закрито: лобі простояло надто довго без старту гри.
+        </div>
+        <Button variant="purple" className={styles.actionBtn} onClick={() => navigate('/teacher')}>
+          ← до кабінету
+        </Button>
+      </>
+    );
+  }
 
   if (error) return <div className={styles.joinLine}>{error}</div>;
   if (!room && !live) return <div className={styles.joinLine}>Завантаження кімнати…</div>;
