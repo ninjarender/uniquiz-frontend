@@ -1,13 +1,26 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import type { FormEvent } from 'react';
-import { ApiError, BanksApi, ImagesApi, QuestionsApi } from '../shared/api';
-import type { AnswerSetStatus, BankDetailed, Question } from '../shared/api';
+import {
+  AnswerSetsApi,
+  ApiError,
+  BanksApi,
+  GenerationApi,
+  ImagesApi,
+  QuestionsApi,
+} from '../shared/api';
+import type {
+  AnswerSet,
+  AnswerSetPatch,
+  AnswerSetStatus,
+  BankDetailed,
+  GenerationJob,
+  Question,
+} from '../shared/api';
 import { Button, TextArea, TextField } from '../shared/controls';
 import { ErrorBox } from '../shared/controls';
 import { Modal, useToast } from '../shared/ui';
-import { makeDemoSet, ModerationModal } from './bank/DemoModeration';
-import type { DemoSet } from './bank/DemoModeration';
+import { ModerationModal } from './bank/ModerationModal';
 import styles from './BankScreen.module.css';
 import { TeacherLayout } from './TeacherLayout';
 
@@ -41,13 +54,22 @@ function StatusChip({ question }: { question: Question }) {
   );
 }
 
+/** Statuses the worker moves a set through before it lands back in review. */
+const IN_FLIGHT_STATUSES: AnswerSetStatus[] = ['generating', 'self_check', 'regenerating'];
+
+const hasSetInFlight = (questions: Question[]): boolean =>
+  questions.some(
+    (question) =>
+      question.answerSet && IN_FLIGHT_STATUSES.includes(question.answerSet.status),
+  );
+
 interface QuestionFormState {
   text: string;
   referenceAnswer: string;
   imageUrl: string | null;
 }
 
-/** Bank editor: questions table + create/edit modal + demo AI moderation. */
+/** Bank editor: questions table, create/edit modal, AI generation + moderation. */
 export function BankScreen() {
   const { bankId } = useParams<'bankId'>();
   const navigate = useNavigate();
@@ -65,44 +87,107 @@ export function BankScreen() {
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
-  // Client-only demo answer sets (until backend generation, tasks 0013-0017).
-  const [demoSets, setDemoSets] = useState<Map<string, DemoSet>>(new Map());
-  const [generating, setGenerating] = useState(false);
-  const [moderating, setModerating] = useState<Question | null>(null);
+  const [starting, setStarting] = useState(false);
+  const [job, setJob] = useState<GenerationJob | null>(null);
+  const [moderatingId, setModeratingId] = useState<string | null>(null);
+  const [accepting, setAccepting] = useState(false);
 
-  const effectiveSet = (question: Question): DemoSet | undefined =>
-    question.answerSet
-      ? undefined // real sets will get their own moderation with tasks 0015+
-      : demoSets.get(question.id);
+  const jobActive = job?.status === 'queued' || job?.status === 'running';
 
-  const generateDemo = () => {
-    if (!bank || bank.questions.length === 0) {
+  // Sets still being processed by the worker are not moderatable yet.
+  const isModeratable = (set: AnswerSet | undefined): set is AnswerSet =>
+    !!set && ['in_review', 'accepted', 'edited'].includes(set.status);
+
+  // Resolve from bank state so the modal always sees the freshest set.
+  const moderating = moderatingId
+    ? bank?.questions.find((question) => question.id === moderatingId)
+    : undefined;
+
+  const startGeneration = async () => {
+    if (!bank) return;
+    if (bank.questions.length === 0) {
       toast('Спершу додайте запитання');
       return;
     }
-    setGenerating(true);
-    const pending = bank.questions.filter(
-      (question) => !question.answerSet && !demoSets.has(question.id),
-    );
-    if (pending.length === 0) {
-      toast('Усі запитання вже мають комплекти');
-      setGenerating(false);
-      return;
+    setStarting(true);
+    try {
+      const started = await GenerationApi.start(bank.id);
+      setJob(started);
+      toast('Генерацію запущено');
+      reload();
+    } catch (caught) {
+      if (caught instanceof ApiError && caught.statusCode === 409) {
+        // Already running — pick up the active job and start tracking it.
+        toast('Генерація для цього банку вже виконується');
+        setJob(await GenerationApi.status(bank.id).catch(() => null));
+        return;
+      }
+      toast(caught instanceof ApiError ? caught.message : 'Немає звʼязку з сервером');
+    } finally {
+      setStarting(false);
     }
-    // Staggered "generation" for the demo effect.
-    pending.forEach((question, index) => {
-      setTimeout(() => {
-        setDemoSets((previous) => {
-          const next = new Map(previous);
-          next.set(question.id, makeDemoSet(question));
-          return next;
-        });
-        if (index === pending.length - 1) {
-          setGenerating(false);
-          toast('Готово! Демо-комплекти на модерації — клікніть рядок');
-        }
-      }, 700 + index * 450);
+  };
+
+  // Merge an updated set into bank state and recount ready questions.
+  const applySetUpdate = (updated: AnswerSet) => {
+    setBank((previous) => {
+      if (!previous) return previous;
+      const questions = previous.questions.map((question) =>
+        question.id === updated.questionId ? { ...question, answerSet: updated } : question,
+      );
+      const readyCount = questions.filter(
+        (question) =>
+          question.answerSet &&
+          ['accepted', 'edited'].includes(question.answerSet.status),
+      ).length;
+      return { ...previous, questions, readyCount };
     });
+  };
+
+  // Errors are thrown through to the modal, which shows them next to the edit form.
+  const saveSet = async (set: AnswerSet, patch: AnswerSetPatch) => {
+    const updated = await AnswerSetsApi.update(set.id, patch);
+    applySetUpdate(updated);
+    toast('Правки збережено — комплект у статусі edited');
+  };
+
+  const acceptSet = async (set: AnswerSet) => {
+    setAccepting(true);
+    try {
+      const updated = await AnswerSetsApi.accept(set.id);
+      applySetUpdate(updated);
+      toast('Комплект прийнято — запитання готове до гри');
+      setModeratingId(null);
+    } catch (caught) {
+      if (caught instanceof ApiError && caught.statusCode === 409) {
+        toast('Комплект уже не на модерації — оновлюю банк');
+        setModeratingId(null);
+        reload();
+        return;
+      }
+      toast(caught instanceof ApiError ? caught.message : 'Немає звʼязку з сервером');
+    } finally {
+      setAccepting(false);
+    }
+  };
+
+  const regenerateSet = async (set: AnswerSet) => {
+    setAccepting(true);
+    try {
+      const updated = await AnswerSetsApi.regenerate(set.id);
+      // Status regenerating unmounts the modal by itself: the set is no longer moderatable.
+      applySetUpdate(updated);
+      toast('Перегенерацію поставлено в чергу');
+      pickUpActiveJob();
+    } catch (caught) {
+      if (caught instanceof ApiError && caught.statusCode === 409) {
+        toast('Цей комплект уже перегенеровується');
+        return;
+      }
+      toast(caught instanceof ApiError ? caught.message : 'Немає звʼязку з сервером');
+    } finally {
+      setAccepting(false);
+    }
   };
 
   const reload = useCallback(() => {
@@ -123,6 +208,66 @@ export function BankScreen() {
   }, [bankId, navigate, toast]);
 
   useEffect(reload, [reload]);
+
+  // Pick up an active generation job (page refresh, single-set regeneration).
+  const pickUpActiveJob = useCallback(() => {
+    if (!bankId) return;
+    GenerationApi.status(bankId)
+      .then((current) => {
+        if (current.status === 'queued' || current.status === 'running') setJob(current);
+      })
+      .catch(() => undefined); // status is auxiliary here — bank load reports real errors
+  }, [bankId]);
+
+  useEffect(pickUpActiveJob, [pickUpActiveJob]);
+
+  // Poll while the job is active; the interval dies as soon as jobActive flips off.
+  useEffect(() => {
+    if (!bankId || !jobActive) return;
+    const timer = setInterval(() => {
+      GenerationApi.status(bankId)
+        .then((next) => {
+          setJob(next);
+          if (next.status === 'done') {
+            toast('Генерація завершена — комплекти чекають модерації');
+            reload();
+          } else if (next.status === 'failed') {
+            reload();
+          }
+        })
+        .catch(() => undefined); // transient polling error — keep trying
+    }, 2000);
+    return () => clearInterval(timer);
+  }, [bankId, jobActive, reload, toast]);
+
+  // Sets still being processed by the worker; done = the rest of the job's total.
+  // Right after 202 there is no countsByStatus yet — that means 0 done, not total.
+  const setsInFlight = IN_FLIGHT_STATUSES.reduce(
+    (sum, status) => sum + (job?.countsByStatus?.[status] ?? 0),
+    0,
+  );
+  const setsDone = job?.countsByStatus ? Math.max(0, job.total - setsInFlight) : 0;
+
+  // Single-set regeneration is not reflected in the bank-level job status —
+  // GET /generation stays "done" while the per-set task runs. Watch the bank
+  // itself whenever a set is in flight without an active job.
+  const regenInFlight =
+    !jobActive && !!bank && hasSetInFlight(bank.questions);
+
+  useEffect(() => {
+    if (!bankId || !regenInFlight) return;
+    const timer = setInterval(() => {
+      BanksApi.get(bankId)
+        .then((fresh) => {
+          setBank(fresh);
+          if (!hasSetInFlight(fresh.questions)) {
+            toast('Перегенерація завершена — комплект знову на модерації');
+          }
+        })
+        .catch(() => undefined); // transient polling error — keep trying
+    }, 2500);
+    return () => clearInterval(timer);
+  }, [bankId, regenInFlight, toast]);
 
   const openCreate = () => {
     setForm({ text: '', referenceAnswer: '', imageUrl: null });
@@ -233,11 +378,11 @@ export function BankScreen() {
                 <Button
                   variant="purple"
                   className={styles.generateBtn}
-                  disabled={generating}
-                  title="Демо-генерація · реальна прийде з бекенд-таскою 0013"
-                  onClick={generateDemo}
+                  disabled={starting || jobActive}
+                  title="Поставити генерацію комплектів у чергу на бекенді"
+                  onClick={() => void startGeneration()}
                 >
-                  {generating ? '⏳ Генерується…' : '✨ Згенерувати відповіді (ШІ)'}
+                  {starting || jobActive ? '⏳ Генерується…' : '✨ Згенерувати відповіді (ШІ)'}
                 </Button>
                 <Button
                   variant="purple"
@@ -252,10 +397,16 @@ export function BankScreen() {
               </div>
             </div>
 
-            {demoSets.size > 0 && (
-              <div className={styles.demoBanner}>
-                ⚠ Демо-комплекти живуть лише в цій вкладці і не збережені в базі —
-                реальна генерація підключиться з бекенд-таскою 0013.
+            {jobActive && job && (
+              <div className={styles.genBanner}>
+                ⏳ Генерація йде: готово {setsDone} з {job.total}. Комплекти
+                зʼявляться в таблиці після завершення.
+              </div>
+            )}
+            {job?.status === 'failed' && (
+              <div className={styles.genErrorBanner}>
+                ⚠ Генерація не вдалася{job.error ? `: ${job.error}` : ''}. Можна
+                запустити ще раз.
               </div>
             )}
 
@@ -289,9 +440,9 @@ export function BankScreen() {
                       <tr
                         key={question.id}
                         onClick={() => {
-                          if (effectiveSet(question)) setModerating(question);
+                          if (isModeratable(question.answerSet)) setModeratingId(question.id);
                         }}
-                        className={effectiveSet(question) ? styles.rowClickable : ''}
+                        className={isModeratable(question.answerSet) ? styles.rowClickable : ''}
                       >
                         <td>{index + 1}</td>
                         <td className={styles.cellText}>{question.text}</td>
@@ -308,16 +459,7 @@ export function BankScreen() {
                           )}
                         </td>
                         <td>
-                          <StatusChip
-                            question={
-                              effectiveSet(question)
-                                ? { ...question, answerSet: effectiveSet(question) }
-                                : question
-                            }
-                          />
-                          {effectiveSet(question) && (
-                            <span className={styles.demoMark}>демо</span>
-                          )}
+                          <StatusChip question={question} />
                         </td>
                         <td>
                           <div className={styles.rowActions}>
@@ -421,18 +563,15 @@ export function BankScreen() {
         </Modal>
       )}
 
-      {moderating && effectiveSet(moderating) && (
+      {moderating && isModeratable(moderating.answerSet) && (
         <ModerationModal
           question={moderating}
-          set={effectiveSet(moderating)!}
-          onClose={() => setModerating(null)}
-          onChange={(next) =>
-            setDemoSets((previous) => {
-              const map = new Map(previous);
-              map.set(moderating.id, next);
-              return map;
-            })
-          }
+          set={moderating.answerSet}
+          busy={accepting}
+          onClose={() => setModeratingId(null)}
+          onAccept={() => void acceptSet(moderating.answerSet!)}
+          onRegenerate={() => void regenerateSet(moderating.answerSet!)}
+          onSave={(patch) => saveSet(moderating.answerSet!, patch)}
         />
       )}
 

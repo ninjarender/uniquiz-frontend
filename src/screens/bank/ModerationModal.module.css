@@ -48,16 +48,6 @@
   font-size: 11px;
   color: rgb(255 255 255 / 0.55);
 }
-.demoBadge {
-  margin-left: auto;
-  border-radius: 999px;
-  background: rgb(255 255 255 / 0.1);
-  padding: 2px 8px;
-  font-size: 9.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--color-uq-accent);
-}
 
 .actions {
   margin-top: 16px;

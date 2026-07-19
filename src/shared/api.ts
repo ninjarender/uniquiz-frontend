@@ -117,6 +117,17 @@ export interface Question {
 export interface BankDetailed extends Bank {
   questions: Question[];
 }
+export type GenerationStatus = 'idle' | 'queued' | 'running' | 'done' | 'failed';
+export interface GenerationJob {
+  jobId?: string;
+  status: GenerationStatus;
+  /** How many questions the job covers. */
+  total: number;
+  /** Bank's answer sets per lifecycle status. */
+  countsByStatus?: Record<string, number>;
+  /** Failure reason when status = failed. */
+  error?: string;
+}
 
 /* ---------- endpoint helpers ---------- */
 
@@ -150,6 +161,31 @@ export const QuestionsApi = {
     api<Question>(`/questions/${questionId}`, { method: 'PATCH', body: input }),
   remove: (questionId: string) =>
     api<void>(`/questions/${questionId}`, { method: 'DELETE' }),
+};
+
+/** Host edit of an answer set; any patch moves it to status edited. */
+export interface AnswerSetPatch {
+  /** Exactly 4 options when present. */
+  options?: string[];
+  /** 0-3 when present. */
+  correctIndex?: number;
+  spareDistractor?: string;
+  explanation?: string;
+}
+
+export const AnswerSetsApi = {
+  accept: (answerSetId: string) =>
+    api<AnswerSet>(`/answer-sets/${answerSetId}/accept`, { method: 'POST' }),
+  update: (answerSetId: string, patch: AnswerSetPatch) =>
+    api<AnswerSet>(`/answer-sets/${answerSetId}`, { method: 'PATCH', body: patch }),
+  regenerate: (answerSetId: string) =>
+    api<AnswerSet>(`/answer-sets/${answerSetId}/regenerate`, { method: 'POST' }),
+};
+
+export const GenerationApi = {
+  start: (bankId: string) =>
+    api<GenerationJob>(`/banks/${bankId}/generation`, { method: 'POST' }),
+  status: (bankId: string) => api<GenerationJob>(`/banks/${bankId}/generation`),
 };
 
 export const ImagesApi = {
