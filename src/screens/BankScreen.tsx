@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import type { FormEvent } from 'react';
-import { ApiError, BanksApi, ImagesApi, QuestionsApi } from '../shared/api';
+import { ApiError, BanksApi, GenerationApi, ImagesApi, QuestionsApi } from '../shared/api';
 import type { AnswerSetStatus, BankDetailed, Question } from '../shared/api';
 import { Button, TextArea, TextField } from '../shared/controls';
 import { ErrorBox } from '../shared/controls';
 import { Modal, useToast } from '../shared/ui';
-import { makeDemoSet, ModerationModal } from './bank/DemoModeration';
+import { ModerationModal } from './bank/DemoModeration';
 import type { DemoSet } from './bank/DemoModeration';
 import styles from './BankScreen.module.css';
 import { TeacherLayout } from './TeacherLayout';
@@ -75,34 +75,27 @@ export function BankScreen() {
       ? undefined // real sets will get their own moderation with tasks 0015+
       : demoSets.get(question.id);
 
-  const generateDemo = () => {
-    if (!bank || bank.questions.length === 0) {
+  const startGeneration = async () => {
+    if (!bank) return;
+    if (bank.questions.length === 0) {
       toast('Спершу додайте запитання');
       return;
     }
     setGenerating(true);
-    const pending = bank.questions.filter(
-      (question) => !question.answerSet && !demoSets.has(question.id),
-    );
-    if (pending.length === 0) {
-      toast('Усі запитання вже мають комплекти');
+    try {
+      await GenerationApi.start(bank.id);
+      toast('Генерацію запущено');
+      reload();
+    } catch (caught) {
+      if (caught instanceof ApiError && caught.statusCode === 409) {
+        // Already running — stay in the "in progress" state; live status arrives with task 0043.
+        toast('Генерація для цього банку вже виконується');
+        reload();
+        return;
+      }
       setGenerating(false);
-      return;
+      toast(caught instanceof ApiError ? caught.message : 'Немає звʼязку з сервером');
     }
-    // Staggered "generation" for the demo effect.
-    pending.forEach((question, index) => {
-      setTimeout(() => {
-        setDemoSets((previous) => {
-          const next = new Map(previous);
-          next.set(question.id, makeDemoSet(question));
-          return next;
-        });
-        if (index === pending.length - 1) {
-          setGenerating(false);
-          toast('Готово! Демо-комплекти на модерації — клікніть рядок');
-        }
-      }, 700 + index * 450);
-    });
   };
 
   const reload = useCallback(() => {
@@ -234,8 +227,8 @@ export function BankScreen() {
                   variant="purple"
                   className={styles.generateBtn}
                   disabled={generating}
-                  title="Демо-генерація · реальна прийде з бекенд-таскою 0013"
-                  onClick={generateDemo}
+                  title="Поставити генерацію комплектів у чергу на бекенді"
+                  onClick={() => void startGeneration()}
                 >
                   {generating ? '⏳ Генерується…' : '✨ Згенерувати відповіді (ШІ)'}
                 </Button>

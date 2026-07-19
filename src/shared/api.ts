@@ -117,6 +117,17 @@ export interface Question {
 export interface BankDetailed extends Bank {
   questions: Question[];
 }
+export type GenerationStatus = 'idle' | 'queued' | 'running' | 'done' | 'failed';
+export interface GenerationJob {
+  jobId?: string;
+  status: GenerationStatus;
+  /** How many questions the job covers. */
+  total: number;
+  /** Bank's answer sets per lifecycle status. */
+  countsByStatus?: Record<string, number>;
+  /** Failure reason when status = failed. */
+  error?: string;
+}
 
 /* ---------- endpoint helpers ---------- */
 
@@ -150,6 +161,11 @@ export const QuestionsApi = {
     api<Question>(`/questions/${questionId}`, { method: 'PATCH', body: input }),
   remove: (questionId: string) =>
     api<void>(`/questions/${questionId}`, { method: 'DELETE' }),
+};
+
+export const GenerationApi = {
+  start: (bankId: string) =>
+    api<GenerationJob>(`/banks/${bankId}/generation`, { method: 'POST' }),
 };
 
 export const ImagesApi = {
