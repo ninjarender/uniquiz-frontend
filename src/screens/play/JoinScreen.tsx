@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import type { FormEvent } from 'react';
 import { useDemoGame } from '../../demo/engine';
-import { ApiError, RoomsApi } from '../../shared/api';
+import { ApiError, RoomsApi, getHostToken } from '../../shared/api';
 import type { RoomPublicInfo } from '../../shared/api';
+import { useGame } from '../../shared/game';
 import { Button, TextField } from '../../shared/controls';
 import { FloatingShapes, Logo } from '../../shared/ui';
 import type { ShapeSpec } from '../../shared/ui';
@@ -18,17 +19,20 @@ const JOIN_SHAPES: ShapeSpec[] = [
 
 /**
  * D2 - joining a session. Two entries:
- * /join/{roomId} — real room from a joinUrl (public info before the nickname form);
- * /play — demo flow with a manual room code (until 0052/0071).
+ * /join/{roomId} — real room from a joinUrl: public info, then join_room over
+ * WS (task 0052); /play — demo flow with a manual room code (until 0071).
  */
 export function JoinScreen() {
   const { roomId } = useParams<'roomId'>();
-  const { join } = useDemoGame();
+  const { join: demoJoin } = useDemoGame();
+  const game = useGame();
   const navigate = useNavigate();
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
   const [room, setRoom] = useState<RoomPublicInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [joining, setJoining] = useState(false);
 
   useEffect(() => {
     if (!roomId) return;
@@ -45,10 +49,45 @@ export function JoinScreen() {
       });
   }, [roomId]);
 
+  // join_ack landed: the provider holds the room snapshot -> to the lobby.
+  useEffect(() => {
+    if (joining && game.room?.roomId === roomId) navigate('/play/lobby');
+  }, [joining, game.room, roomId, navigate]);
+
+  // This screen initiated join_room, so it owns the protocol errors for it.
+  useEffect(() => {
+    if (!roomId) return;
+    return game.interceptErrors((wsError) => {
+      setJoining(false);
+      if (wsError.code === 'room_not_found') {
+        setError('Кімнати не існує або її закрито');
+      } else if (wsError.code === 'room_not_waiting') {
+        setError('Гра вже почалася — приєднатися можна лише до старту');
+      } else if (wsError.code === 'nickname_taken') {
+        setFormError('Це імʼя вже зайняте в кімнаті — оберіть інше');
+      } else {
+        return false;
+      }
+      return true;
+    });
+  }, [roomId, game.interceptErrors]);
+
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    // Real join is a Socket.IO event (task 0052); until then the demo engine drives the lobby.
-    join(roomId ?? (code.trim() || '482 913'), name.trim() || 'Гість');
+    if (roomId) {
+      setError(null);
+      setFormError(null);
+      setJoining(true);
+      game.join({
+        roomId,
+        nickname: name.trim(),
+        // The room creator has the token in sessionStorage -> joins as host.
+        hostToken: getHostToken(roomId) ?? undefined,
+      });
+      return;
+    }
+    // Manual-code entry stays on the demo engine until 0071.
+    demoJoin(code.trim() || '482 913', name.trim() || 'Гість');
     navigate('/play/lobby');
   };
 
@@ -94,7 +133,7 @@ export function JoinScreen() {
             </div>
           )}
 
-          {room && waiting && (
+          {room && waiting && !error && (
             <>
               <div className={styles.tagline}>Введіть ваше імʼя, щоб приєднатися</div>
               <form className={styles.card} onSubmit={submit}>
@@ -114,8 +153,9 @@ export function JoinScreen() {
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                 />
-                <Button type="submit" disabled={!name.trim()}>
-                  ▶ Приєднатися
+                {formError && <div className={styles.formError}>{formError}</div>}
+                <Button type="submit" disabled={!name.trim() || joining}>
+                  {joining ? 'Приєднання…' : '▶ Приєднатися'}
                 </Button>
               </form>
             </>
