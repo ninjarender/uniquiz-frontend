@@ -123,13 +123,6 @@ export function DashboardScreen() {
         <section className={`grad-bg ${styles.hero}`}>
           <FloatingShapes shapes={HERO_SHAPES} />
           <div className={styles.heroActions}>
-            <Button
-              variant="purple"
-              onClick={() => navigate('/live')}
-              title="Демо-муляж live-сесії (проєктор)"
-            >
-              ▶ Демо-сесія
-            </Button>
             <Button onClick={() => { setName(''); setCreateOpen(true); }}>
               ＋ Створити банк
             </Button>
@@ -284,16 +277,13 @@ export function DashboardScreen() {
 
           <section className={styles.panel}>
             <h4 className={styles.panelTitle}>⚡ Швидкі дії</h4>
-            <button type="button" data-ripple onClick={() => navigate('/live')} className={styles.quickBtn}>
-              ▶ Запустити live-сесію (демо)
-            </button>
             <button
               type="button"
               data-ripple
-              onClick={() => toast('Генерація ШІ підключиться з бекенд-таскою 0013')}
+              onClick={() => toast('Кімната і генерація запускаються з екрана банку')}
               className={styles.quickBtn}
             >
-              ✨ Догенерувати відповіді ШІ
+              ▶ Запустити live-сесію
             </button>
             <button
               type="button"

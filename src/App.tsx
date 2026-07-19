@@ -3,7 +3,6 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 import type { ReactNode } from 'react';
 import { AuthProvider, useAuth } from './shared/auth';
 import { ToastProvider } from './shared/ui';
-import { DemoGameProvider } from './demo/engine';
 import { GameProvider } from './shared/game';
 import { BankScreen } from './screens/BankScreen';
 import { DashboardScreen } from './screens/DashboardScreen';
@@ -61,8 +60,6 @@ export default function App() {
   return (
     <ToastProvider>
       <AuthProvider>
-        {/* Demo engine stays until every screen moves to GameProvider (task 0071). */}
-        <DemoGameProvider>
         <GameProvider>
         <BrowserRouter>
           {/* Mounted first: its interceptor registers first, so it is the
@@ -106,7 +103,6 @@ export default function App() {
           </Routes>
         </BrowserRouter>
         </GameProvider>
-        </DemoGameProvider>
       </AuthProvider>
     </ToastProvider>
   );

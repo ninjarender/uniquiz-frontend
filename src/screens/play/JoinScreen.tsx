@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import type { FormEvent } from 'react';
-import { useDemoGame } from '../../demo/engine';
 import { ApiError, RoomsApi, getHostToken } from '../../shared/api';
 import type { RoomPublicInfo } from '../../shared/api';
 import { useGame } from '../../shared/game';
@@ -19,12 +18,11 @@ const JOIN_SHAPES: ShapeSpec[] = [
 
 /**
  * D2 - joining a session. Two entries:
- * /join/{roomId} — real room from a joinUrl: public info, then join_room over
- * WS (task 0052); /play — demo flow with a manual room code (until 0071).
+ * /join/{roomId} — room from a joinUrl: public info, then join_room over WS
+ * (task 0052); /play — manual room-id entry that leads to the same route.
  */
 export function JoinScreen() {
   const { roomId } = useParams<'roomId'>();
-  const { join: demoJoin } = useDemoGame();
   const game = useGame();
   const navigate = useNavigate();
   const [code, setCode] = useState('');
@@ -86,9 +84,8 @@ export function JoinScreen() {
       });
       return;
     }
-    // Manual-code entry stays on the demo engine until 0071.
-    demoJoin(code.trim() || '482 913', name.trim() || 'Гість');
-    navigate('/play/lobby');
+    // Manual entry: the code IS the roomId from the host's join link.
+    if (code.trim()) navigate(`/join/${code.trim()}`);
   };
 
   const loadingRealRoom = roomId && !room && !error;
@@ -163,27 +160,24 @@ export function JoinScreen() {
         </>
       ) : (
         <>
-          <div className={styles.tagline}>Введіть код кімнати та ваше імʼя</div>
+          <div className={styles.tagline}>Введіть код кімнати</div>
           <form className={styles.card} onSubmit={submit}>
             <TextField
               className={styles.codeField}
               placeholder="Код кімнати"
               autoFocus
+              required
               value={code}
               onChange={(event) => setCode(event.target.value)}
             />
-            <TextField
-              className={styles.nameField}
-              placeholder="Ваше імʼя"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
-            <Button type="submit">▶ Приєднатися</Button>
-            <div className={styles.note}>Код показує хост — на екрані чи проєкторі</div>
+            <Button type="submit" disabled={!code.trim()}>
+              Далі →
+            </Button>
+            <div className={styles.note}>
+              Код — з посилання хоста (/join/&#123;код&#125;); найпростіше —
+              відкрити саме посилання
+            </div>
           </form>
-          <div className={styles.demoBadge}>
-            Демо-режим · приєднання за посиланням — /join/&#123;roomId&#125;
-          </div>
         </>
       )}
     </div>
