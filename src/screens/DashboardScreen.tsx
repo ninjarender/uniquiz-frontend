@@ -104,13 +104,23 @@ export function DashboardScreen() {
           <span aria-hidden className="sh spin" style={{ fontSize: 80, right: 110, top: -20 }}>▲</span>
           <span aria-hidden className="sh" style={{ fontSize: 60, right: 24, bottom: -16 }}>●</span>
           <span aria-hidden className="sh" style={{ fontSize: 52, left: -12, bottom: -14 }}>■</span>
-          <button
-            type="button"
-            onClick={() => { setName(''); setCreateOpen(true); }}
-            className="btn-green absolute top-5 right-5"
-          >
-            ＋ Створити банк
-          </button>
+          <div className="absolute top-5 right-5 flex gap-2">
+            <button
+              type="button"
+              onClick={() => navigate('/live')}
+              className="btn-purple"
+              title="Демо-муляж live-сесії (проєктор)"
+            >
+              ▶ Демо-сесія
+            </button>
+            <button
+              type="button"
+              onClick={() => { setName(''); setCreateOpen(true); }}
+              className="btn-green"
+            >
+              ＋ Створити банк
+            </button>
+          </div>
           <h2 className="text-[22px] font-extrabold">
             Привіт{user ? `, ${user.email.split('@')[0]}` : ''}! 👋
           </h2>
