@@ -62,6 +62,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomeScreen />} />
             <Route path="/play" element={<JoinScreen />} />
+            <Route path="/join/:roomId" element={<JoinScreen />} />
             <Route path="/play/lobby" element={<LobbyScreen />} />
             <Route path="/play/round" element={<RoundScreen />} />
             <Route path="/play/result" element={<RoundResultScreen />} />

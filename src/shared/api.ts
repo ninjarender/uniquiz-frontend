@@ -209,8 +209,18 @@ export interface RoomCreated {
   hostToken: string;
 }
 
+export type RoomStatus = 'waiting' | 'in_game' | 'finished';
+/** Public room data for the join-by-link page (no token needed). */
+export interface RoomPublicInfo {
+  roomId: string;
+  status: RoomStatus;
+  settings: RoomSettings;
+  bankName: string;
+}
+
 export const RoomsApi = {
   create: (body: RoomCreate) => api<RoomCreated>('/rooms', { method: 'POST', body }),
+  publicInfo: (roomId: string) => api<RoomPublicInfo>(`/rooms/${roomId}`),
 };
 
 /* Host token survives a refresh in the same tab; join_room (Socket.IO) will need it. */
