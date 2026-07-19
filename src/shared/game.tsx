@@ -128,34 +128,40 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const socket = getSocket();
     setConnected(socket.connected);
 
+    /**
+     * The one snapshot reducer (task 0058): a RoomState fully replaces the
+     * local game state, whether it came in join_ack, as the rejoin_room
+     * reply or as an out-of-band server emission.
+     */
+    const applySnapshot = (snapshot: RoomState) => {
+      roomIdRef.current = snapshot.roomId;
+      setRoom(snapshot);
+      setCurrentQuestion(snapshot.currentQuestion ?? null);
+      // Mid-round rejoin: the snapshot carries the server's own remaining
+      // time - use it to catch local clock drift (task 0057).
+      const question = snapshot.currentQuestion;
+      if (question?.remainingSeconds !== undefined) {
+        const expectedServerNow =
+          question.questionStartTime +
+          (question.timeLimitSeconds - question.remainingSeconds) * 1000;
+        if (driftExceeded(expectedServerNow)) requestTimeSync(socket);
+      }
+      if (snapshot.status === 'waiting') {
+        // "Play again" and lobby-restore both mean a fresh game.
+        setGameStarted(null);
+        setLastAnswerAck(null);
+        setLastRoundResult(null);
+        setGameOver(null);
+      }
+    };
+
     const handlers: { [E in keyof ServerToClientEvents]?: ServerToClientEvents[E] } = {
       join_ack: ({ playerId: id, resumeToken, room: snapshot }) => {
         savePlayerSession(snapshot.roomId, { playerId: id, resumeToken });
-        roomIdRef.current = snapshot.roomId;
         setPlayerId(id);
-        setRoom(snapshot);
-        setCurrentQuestion(snapshot.currentQuestion ?? null);
+        applySnapshot(snapshot);
       },
-      room_state: (snapshot) => {
-        roomIdRef.current = snapshot.roomId;
-        setRoom(snapshot);
-        setCurrentQuestion(snapshot.currentQuestion ?? null);
-        // Mid-round rejoin: the snapshot carries the server's own remaining
-        // time - use it to catch local clock drift (task 0057).
-        const question = snapshot.currentQuestion;
-        if (question?.remainingSeconds !== undefined) {
-          const expectedServerNow =
-            question.questionStartTime +
-            (question.timeLimitSeconds - question.remainingSeconds) * 1000;
-          if (driftExceeded(expectedServerNow)) requestTimeSync(socket);
-        }
-        if (snapshot.status === 'waiting') {
-          // "Play again" and lobby-restore both mean a fresh game.
-          setGameStarted(null);
-          setLastRoundResult(null);
-          setGameOver(null);
-        }
-      },
+      room_state: applySnapshot,
       player_joined: ({ player }) => {
         setRoom((previous) =>
           previous && !previous.players.some((p) => p.id === player.id)

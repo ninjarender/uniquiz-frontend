@@ -20,7 +20,7 @@ export function GameResume() {
   const game = useGame();
   const navigate = useNavigate();
   const location = useLocation();
-  const hadRoom = useRef(false);
+  const lastStatus = useRef<RoomStatus | null>(null);
   const resumeRoomId = useRef<string | null>(null);
 
   useEffect(() => {
@@ -33,19 +33,23 @@ export function GameResume() {
     // Mount-only: later room changes are handled by the routing effect below.
   }, []);
 
-  // The room appeared (join_ack or restored room_state) -> route by status.
+  // Route on every room-status change (task 0058): first snapshot after a
+  // (re)join, "play again" back to waiting, an out-of-band room_state - all
+  // land on the screen the server state dictates. Same-status snapshots never
+  // re-navigate, so in-game sub-screens (round/result) stay event-driven.
   useEffect(() => {
     if (!game.room) {
-      hadRoom.current = false;
+      lastStatus.current = null;
       return;
     }
-    if (hadRoom.current) return;
-    hadRoom.current = true;
+    const status = game.room.status;
+    if (lastStatus.current === status) return;
+    lastStatus.current = status;
     // Only the player zone follows the snapshot; the host's projector (/live)
     // joins the room too but keeps its own screen (task 0055).
     const inPlayZone =
       location.pathname.startsWith('/play') || location.pathname.startsWith('/join');
-    const target = SCREEN_BY_STATUS[game.room.status];
+    const target = SCREEN_BY_STATUS[status];
     if (inPlayZone && location.pathname !== target) navigate(target, { replace: true });
   }, [game.room]);
 

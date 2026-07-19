@@ -2,12 +2,61 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QUIZ_LEN } from '../../demo/data';
 import { useDemoGame } from '../../demo/engine';
+import { useGame } from '../../shared/game';
 import { Button } from '../../shared/controls';
 import { FloatingShapes, HOME_SHAPES, Logo, useToast } from '../../shared/ui';
 import styles from './ResultShared.module.css';
 
 /** Final: leaderboard, personal stats, play again / share (features.md). */
 export function FinalScreen() {
+  const real = useGame();
+  // Real finished room (routed here by the room_state snapshot, task 0058):
+  // minimal leaderboard until the full game_over review lands in 0069.
+  if (real.room) return <RealFinal />;
+  return <DemoFinal />;
+}
+
+function RealFinal() {
+  const game = useGame();
+  const leaderboard =
+    game.gameOver?.leaderboard ?? game.room?.leaderboard ?? [];
+  const me = game.room?.players.find((player) => player.id === game.playerId);
+  const place =
+    leaderboard.findIndex((entry) => entry.nickname === me?.nickname) + 1;
+  const medal = place === 1 ? '🥇' : place === 2 ? '🥈' : place === 3 ? '🥉' : '🎖';
+
+  return (
+    <div className={`grad-bg ${styles.screen}`}>
+      <FloatingShapes shapes={HOME_SHAPES} />
+      <Logo size={24} />
+
+      <div className={styles.medal}>{medal}</div>
+      <div className={styles.heading}>Гру завершено</div>
+
+      <div className={styles.board}>
+        <div className={styles.boardTitle}>Фінальний лідерборд</div>
+        {leaderboard.map((entry, index) => (
+          <div
+            key={entry.nickname}
+            className={`${styles.row} ${entry.nickname === me?.nickname ? styles.rowYou : ''}`}
+          >
+            <span className={styles.place}>{index + 1}</span>
+            <span className={styles.name}>
+              {entry.nickname}
+              {entry.nickname === me?.nickname && ' (ви)'}
+            </span>
+            <span>{entry.totalScore}</span>
+          </div>
+        ))}
+      </div>
+      <div className={styles.note}>
+        Розбір запитань і trap — після підключення фінального ревью (0069)
+      </div>
+    </div>
+  );
+}
+
+function DemoFinal() {
   const game = useDemoGame();
   const navigate = useNavigate();
   const { toast } = useToast();
