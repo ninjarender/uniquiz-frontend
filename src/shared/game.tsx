@@ -9,6 +9,7 @@ import {
 } from 'react';
 import type { ReactNode } from 'react';
 import { closeSocket, connectSocket, getSocket } from './socket';
+import { applyTimeSyncAck, driftExceeded, requestTimeSync } from './server-clock';
 import type {
   ActiveQuestion,
   GameOverPayload,
@@ -139,6 +140,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
         roomIdRef.current = snapshot.roomId;
         setRoom(snapshot);
         setCurrentQuestion(snapshot.currentQuestion ?? null);
+        // Mid-round rejoin: the snapshot carries the server's own remaining
+        // time - use it to catch local clock drift (task 0057).
+        const question = snapshot.currentQuestion;
+        if (question?.remainingSeconds !== undefined) {
+          const expectedServerNow =
+            question.questionStartTime +
+            (question.timeLimitSeconds - question.remainingSeconds) * 1000;
+          if (driftExceeded(expectedServerNow)) requestTimeSync(socket);
+        }
         if (snapshot.status === 'waiting') {
           // "Play again" and lobby-restore both mean a fresh game.
           setGameStarted(null);
@@ -201,6 +211,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       submit_answer_ack: (ack) => {
         setLastAnswerAck(ack);
       },
+      sync_time_ack: ({ serverTime }) => {
+        applyTimeSyncAck(serverTime);
+      },
       round_result: (payload) => {
         setLastRoundResult(payload);
         setRoom((previous) =>
@@ -227,6 +240,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const onConnect = () => {
       setConnected(true);
+      // Every (re)connect re-estimates the server-clock offset (task 0057).
+      requestTimeSync(socket);
       // Transport reconnected mid-game -> restore membership without the
       // player doing anything (task 0053). First connect has no room yet.
       const roomId = roomIdRef.current;
@@ -287,7 +302,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const syncTime = useCallback(() => {
-    getSocket().emit('sync_time');
+    requestTimeSync(getSocket());
   }, []);
 
   const interceptErrors = useCallback((interceptor: WsErrorInterceptor) => {

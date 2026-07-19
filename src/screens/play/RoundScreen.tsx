@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { QUIZ_LEN, ROUND_TIME_S } from '../../demo/data';
 import { useDemoGame } from '../../demo/engine';
 import { useGame } from '../../shared/game';
+import { serverNow } from '../../shared/server-clock';
 import type { ActiveQuestion } from '../../shared/ws-protocol';
 import { Button } from '../../shared/controls';
 import { FloatingShapes } from '../../shared/ui';
@@ -80,13 +81,14 @@ function RealRound({ question }: { question: ActiveQuestion }) {
     [game.submitAnswer, question.gameId, question.index],
   );
 
-  // Countdown from the server's questionStartTime (clock drift - task 0057).
+  // Countdown to the server-side round close: questionStartTime + limit in
+  // the server's clock frame, compared against serverNow() (task 0057).
   // On zero: auto-send the picked option; with no pick send nothing - the
   // server records "no answer" itself.
   useEffect(() => {
     const deadline = question.questionStartTime + totalMs;
     const timer = setInterval(() => {
-      const left = Math.max(deadline - Date.now(), 0);
+      const left = Math.max(deadline - serverNow(), 0);
       setLeftMs(left);
       if (left > 0) return;
       clearInterval(timer);
