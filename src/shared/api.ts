@@ -221,6 +221,9 @@ export interface RoomPublicInfo {
 export const RoomsApi = {
   create: (body: RoomCreate) => api<RoomCreated>('/rooms', { method: 'POST', body }),
   publicInfo: (roomId: string) => api<RoomPublicInfo>(`/rooms/${roomId}`),
+  /** Host only; 409 once the room is no longer waiting. */
+  updateSettings: (roomId: string, settings: RoomSettings) =>
+    api<RoomPublicInfo>(`/rooms/${roomId}`, { method: 'PATCH', body: settings }),
 };
 
 /* Host token survives a refresh in the same tab; join_room (Socket.IO) will need it. */

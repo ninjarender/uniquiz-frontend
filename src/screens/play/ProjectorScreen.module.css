@@ -43,6 +43,21 @@
 
 .meta { position: relative; font-size: 12.5px; color: rgb(255 255 255 / 0.6); }
 
+.joinUrlBtn {
+  position: relative;
+  overflow: hidden;
+  max-width: min(90vw, 720px);
+  overflow-wrap: anywhere;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.1);
+  padding: 14px 22px;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-uq-accent);
+  text-shadow: 0 0 24px rgb(255 208 47 / 0.3);
+  cursor: pointer;
+}
+
 .players {
   position: relative;
   display: flex;

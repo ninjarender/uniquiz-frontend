@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { BOT_NAMES, DEMO_BANK_NAME } from '../../demo/data';
+import { ApiError, RoomsApi } from '../../shared/api';
+import type { RoomPublicInfo } from '../../shared/api';
 import { Button } from '../../shared/controls';
-import { FloatingShapes, Logo } from '../../shared/ui';
+import { FloatingShapes, Logo, useToast } from '../../shared/ui';
+import { RoomSettingsModal } from './RoomSettingsModal';
 import styles from './ProjectorScreen.module.css';
 import type { ShapeSpec } from '../../shared/ui';
 
@@ -12,9 +15,105 @@ const PROJECTOR_SHAPES: ShapeSpec[] = [
   { glyph: '■', size: 44, top: '20%', right: '12%' },
 ];
 
-/** T2 - projector view: join code + players, then the results podium. */
+/** Host lobby for a real room: join link, settings + edit (task 0049). Players arrive with WS (0052+). */
+function RealRoomLobby({ roomId }: { roomId: string }) {
+  const { toast } = useToast();
+  const [room, setRoom] = useState<RoomPublicInfo | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+
+  const joinUrl = `${window.location.origin}/join/${roomId}`;
+  const waiting = room?.status === 'waiting';
+
+  useEffect(() => {
+    RoomsApi.publicInfo(roomId)
+      .then(setRoom)
+      .catch((caught: unknown) => {
+        setError(
+          caught instanceof ApiError && caught.statusCode === 404
+            ? 'Кімнати не існує або її закрито'
+            : 'Немає звʼязку з сервером',
+        );
+      });
+  }, [roomId]);
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(joinUrl);
+      toast('Посилання скопійовано');
+    } catch {
+      toast('Не вдалося скопіювати — виділіть посилання вручну');
+    }
+  };
+
+  if (error) return <div className={styles.joinLine}>{error}</div>;
+  if (!room) return <div className={styles.joinLine}>Завантаження кімнати…</div>;
+
+  return (
+    <>
+      <div className={styles.joinLine}>Приєднуйтесь за посиланням:</div>
+      <button
+        type="button"
+        title="Скопіювати посилання"
+        className={styles.joinUrlBtn}
+        onClick={() => void copyLink()}
+      >
+        {joinUrl}
+      </button>
+      <div className={styles.meta}>
+        {room.bankName} ·{' '}
+        {room.settings.mode === 'solo' ? 'Solo' : 'Multiplayer'} ·{' '}
+        {room.settings.questionCount} запитань ·{' '}
+        {room.settings.timePerQuestionSeconds} с на запитання
+      </div>
+      {waiting ? (
+        <Button
+          variant="purple"
+          className={styles.actionBtn}
+          onClick={() => setEditing(true)}
+        >
+          ⚙ Змінити налаштування
+        </Button>
+      ) : (
+        <div className={styles.meta}>
+          {room.status === 'in_game'
+            ? 'Гра йде — налаштування заблоковано'
+            : 'Гру завершено'}
+        </div>
+      )}
+      <div className={styles.note}>
+        Гравці зʼявляться тут після підключення лобі до Socket.IO (таски 0051+)
+      </div>
+
+      {editing && waiting && (
+        <RoomSettingsModal
+          roomId={roomId}
+          settings={room.settings}
+          onClose={() => setEditing(false)}
+          onSaved={(info) => {
+            setRoom(info);
+            setEditing(false);
+            toast('Налаштування збережено');
+          }}
+          onConflict={() => {
+            setEditing(false);
+            setRoom((previous) =>
+              previous ? { ...previous, status: 'in_game' } : previous,
+            );
+            toast('Гра вже почалася — налаштування більше не змінити');
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+/** T2 - projector view: real host lobby when opened with a roomId, otherwise the demo. */
 export function ProjectorScreen() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const roomId = (location.state as { roomId?: string } | null)?.roomId;
+
   const [players, setPlayers] = useState<string[]>([]);
   const [phase, setPhase] = useState<'waiting' | 'results'>('waiting');
   const code = useMemo(
@@ -23,7 +122,7 @@ export function ProjectorScreen() {
   );
 
   useEffect(() => {
-    if (phase !== 'waiting') return;
+    if (roomId || phase !== 'waiting') return;
     const timer = setInterval(() => {
       setPlayers((previous) => {
         if (previous.length >= BOT_NAMES.length) {
@@ -34,7 +133,7 @@ export function ProjectorScreen() {
       });
     }, 1200);
     return () => clearInterval(timer);
-  }, [phase]);
+  }, [roomId, phase]);
 
   const results = useMemo(
     () =>
@@ -45,6 +144,16 @@ export function ProjectorScreen() {
     [],
   );
   const top = results[0]?.score ?? 1;
+
+  if (roomId) {
+    return (
+      <div className={`grad-bg ${styles.screen}`}>
+        <FloatingShapes shapes={PROJECTOR_SHAPES} />
+        <div className={styles.logoCorner}><Logo size={22} /></div>
+        <RealRoomLobby roomId={roomId} />
+      </div>
+    );
+  }
 
   return (
     <div className={`grad-bg ${styles.screen}`}>
@@ -66,7 +175,7 @@ export function ProjectorScreen() {
               <span
                 key={name}
                 className={styles.playerPill}
-                
+
               >
                 {name}
               </span>

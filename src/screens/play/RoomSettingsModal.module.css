@@ -1,0 +1,30 @@
+/* Room settings modal: same field shapes as the create-room form. */
+
+.modeRow { display: flex; gap: 8px; }
+
+.modeBtn {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.08);
+  padding: 10px 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgb(255 255 255 / 0.75);
+  cursor: pointer;
+}
+.modeBtnActive {
+  background: rgb(38 137 12 / 0.28);
+  outline: 2px solid var(--color-uq-green);
+  color: #fff;
+}
+
+.numberRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+.numberInput { width: 96px; text-align: center; }
