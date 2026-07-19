@@ -1,122 +1,93 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useEffect } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import type { ReactNode } from 'react';
+import { AuthProvider, useAuth } from './shared/auth';
+import { ToastProvider } from './shared/ui';
+import { DemoGameProvider } from './demo/engine';
+import { BankScreen } from './screens/BankScreen';
+import { DashboardScreen } from './screens/DashboardScreen';
+import { HomeScreen } from './screens/HomeScreen';
+import { JoinScreen } from './screens/play/JoinScreen';
+import { LobbyScreen } from './screens/play/LobbyScreen';
+import { RoundScreen } from './screens/play/RoundScreen';
+import { RoundResultScreen } from './screens/play/RoundResultScreen';
+import { FinalScreen } from './screens/play/FinalScreen';
+import { ProjectorScreen } from './screens/play/ProjectorScreen';
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+/** Routes that require a logged-in host; waits for the token check. */
+function RequireAuth({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const location = useLocation();
+  if (user === undefined) {
+    return (
+      <div className="grad-bg screen-loading">
+        Завантаження…
+      </div>
+    );
+  }
+  if (user === null) {
+    return <Navigate to="/" replace state={{ from: location.pathname }} />;
+  }
+  return children;
 }
 
-export default App
+/** Prototype-style click ripple on every element marked with data-ripple. */
+function useRipple() {
+  useEffect(() => {
+    const onClick = (event: MouseEvent) => {
+      const target = (event.target as HTMLElement).closest<HTMLElement>('[data-ripple]');
+      if (!target) return;
+      const rect = target.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      const span = document.createElement('span');
+      span.className = 'ripple';
+      span.style.width = span.style.height = `${size}px`;
+      span.style.left = `${event.clientX - rect.left - size / 2}px`;
+      span.style.top = `${event.clientY - rect.top - size / 2}px`;
+      target.appendChild(span);
+      setTimeout(() => span.remove(), 650);
+    };
+    document.addEventListener('click', onClick);
+    return () => document.removeEventListener('click', onClick);
+  }, []);
+}
+
+export default function App() {
+  useRipple();
+  return (
+    <ToastProvider>
+      <AuthProvider>
+        <DemoGameProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<HomeScreen />} />
+            <Route path="/play" element={<JoinScreen />} />
+            <Route path="/play/lobby" element={<LobbyScreen />} />
+            <Route path="/play/round" element={<RoundScreen />} />
+            <Route path="/play/result" element={<RoundResultScreen />} />
+            <Route path="/play/final" element={<FinalScreen />} />
+            <Route path="/live" element={<ProjectorScreen />} />
+            <Route
+              path="/teacher"
+              element={
+                <RequireAuth>
+                  <DashboardScreen />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/teacher/banks/:bankId"
+              element={
+                <RequireAuth>
+                  <BankScreen />
+                </RequireAuth>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+        </DemoGameProvider>
+      </AuthProvider>
+    </ToastProvider>
+  );
+}

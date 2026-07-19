@@ -1,0 +1,176 @@
+/* Bank editor: header, toolbar, questions table, edit modal bits. */
+
+.content {
+  margin: 0 auto;
+  max-width: 980px;
+  padding: 28px;
+}
+
+.backLink {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #6a4fc0;
+  text-decoration: none;
+}
+.backLink:hover { text-decoration: underline; }
+
+.errorWrap { margin-top: 16px; }
+.retryBtn {
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-weight: 700;
+  color: inherit;
+  text-decoration: underline;
+}
+.loading { margin-top: 32px; text-align: center; color: #777; }
+
+.header {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.title { font-size: 21px; font-weight: 800; color: #2d1b52; }
+.sub { margin-top: 4px; font-size: 12.5px; color: #8a7fa8; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; }
+.generateBtn { background: linear-gradient(135deg, #7b2ff7, #4a90d9); }
+.mutedBtn { opacity: 0.7; }
+
+.demoBanner {
+  margin-top: 12px;
+  border-radius: 12px;
+  background: #fff7dc;
+  padding: 10px 16px;
+  font-size: 12px;
+  color: #6b5a00;
+}
+
+.empty {
+  margin-top: 32px;
+  border: 2px dashed #c9bfe4;
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+  color: #6a5d8f;
+}
+.emptyIcon { font-size: 34px; }
+.emptyTitle { margin-top: 8px; font-weight: 700; }
+.emptyText { margin-top: 4px; font-size: 12.5px; }
+.emptyBtn { margin-top: 16px; }
+
+.tableWrap {
+  margin-top: 20px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 4px 18px rgb(70 23 143 / 0.1);
+}
+.table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table th {
+  background: #f4f0fc;
+  padding: 12px 8px;
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #6a5d8f;
+}
+.table th:first-child { width: 40px; padding-left: 16px; }
+.thMedia { width: 96px; }
+.thReference { width: 160px; }
+.thSet { width: 150px; }
+.thActions { width: 80px; }
+.table td { border-top: 1px solid #f0ebfa; padding: 10px 8px; vertical-align: middle; }
+.table td:first-child { padding-left: 16px; font-weight: 700; color: #8a7fa8; }
+.table tr:hover td { background: #faf8ff; }
+.rowClickable { cursor: pointer; }
+.cellText { color: #2d1b52; }
+.cellMuted { color: #c2b8d9; }
+.cellReference {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160px;
+  color: #6a5d8f;
+}
+.mediaImg {
+  height: 36px;
+  width: 56px;
+  border-radius: 6px;
+  object-fit: cover;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.2);
+}
+.rowActions { display: flex; gap: 4px; }
+.iconBtn {
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  padding: 4px;
+  opacity: 0.6;
+}
+.iconBtn:hover { background: #f0ecfa; opacity: 1; }
+.iconBtnDanger:hover { background: #fdecef; }
+
+/* status chips */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.chipNone { background: rgb(255 255 255 / 0.1); background: #efecf6; color: #9a8fb8; }
+.chipReady { background: rgb(38 137 12 / 0.15); color: #26890c; }
+.chipReview { background: rgb(216 158 0 / 0.18); color: #9a7100; }
+.chipWorking { background: rgb(19 104 206 / 0.14); color: #1368ce; }
+.demoMark {
+  margin-left: 4px;
+  vertical-align: middle;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #a08fd0;
+}
+
+/* edit modal bits */
+.uploadRow { display: flex; align-items: center; gap: 12px; }
+.uploadHint { font-size: 11px; color: rgb(255 255 255 / 0.5); }
+.imagePreviewWrap { position: relative; }
+.imagePreview {
+  height: 64px;
+  width: 96px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.3);
+}
+.removeImgBtn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: flex;
+  height: 20px;
+  width: 20px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-uq-red);
+  font-size: 10px;
+  color: #fff;
+}
+.editNote {
+  border-radius: 8px;
+  background: rgb(255 255 255 / 0.08);
+  padding: 8px 12px;
+  font-size: 11.5px;
+  color: rgb(255 255 255 / 0.7);
+}
+.textareaTall { min-height: 84px; }
+.hiddenInput { display: none; }

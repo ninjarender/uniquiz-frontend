@@ -1,0 +1,77 @@
+/* Shared visual atoms: floating shapes, logo, toast, modal. */
+
+.shape {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  line-height: 1;
+  font-weight: 800;
+  color: #fff;
+  opacity: 0.13;
+  animation: var(--animate-float-rot);
+}
+.shapeSpin { animation: var(--animate-float-spin); }
+
+.logo {
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: #fff;
+}
+.logoAccent {
+  color: var(--color-uq-accent);
+  animation: var(--animate-logo-glow);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  z-index: 90;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 10px;
+  background: var(--color-uq-dark);
+  padding: 11px 18px;
+  font-size: 13px;
+  color: #fff;
+  box-shadow: 0 8px 30px rgb(0 0 0 / 0.45);
+  animation: var(--animate-card-in);
+}
+
+.modalBg {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(12 4 34 / 0.72);
+  padding: 20px;
+}
+.modal {
+  width: 460px;
+  max-width: 100%;
+  max-height: 90vh;
+  overflow: auto;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: 16px;
+  background: var(--color-uq-dark);
+  padding: 22px;
+  color: #fff;
+  animation: var(--animate-card-in);
+}
+.modalHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.modalTitle { font-size: 16px; font-weight: 800; }
+.modalClose {
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  color: rgb(255 255 255 / 0.6);
+}
+.modalClose:hover { color: #fff; }

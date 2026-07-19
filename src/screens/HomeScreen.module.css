@@ -1,0 +1,101 @@
+/* D1 - main screen: auth card + join pill. */
+
+.screen {
+  position: relative;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  overflow: hidden;
+}
+
+.tagline {
+  position: relative;
+  max-width: 340px;
+  text-align: center;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #cdbfef;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  width: 320px;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: 16px;
+  background: var(--color-uq-dark);
+  padding: 20px 18px;
+}
+
+.tabs {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.1);
+  padding: 4px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.tabsIndicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  border-radius: 8px;
+  background: var(--color-uq-purple);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.tab {
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  padding: 8px 0;
+  color: rgb(255 255 255 / 0.55);
+}
+.tabActive { color: #fff; }
+
+.authNote {
+  text-align: center;
+  font-size: 11px;
+  color: #b9a8e6;
+}
+
+.joinLabel {
+  position: relative;
+  font-size: 12px;
+  color: #cdbfef;
+}
+
+.joinPill {
+  position: relative;
+  cursor: pointer;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--color-uq-dark), #5b1fb0);
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  box-shadow: 0 3px 0 #1b0741;
+  transition: transform 0.15s ease;
+}
+.joinPill:hover { transform: scale(1.03); }
+.joinPill:active { transform: translateY(2px); }
+.joinArrow { margin-right: 8px; color: var(--color-uq-accent); }
+
+/* Fields cascade in when the auth tab switches (prototype's card swap). */
+.fields { display: flex; flex-direction: column; gap: 10px; }
+.fields > * { animation: var(--animate-card-in); }
+.fields > *:nth-child(2) { animation-delay: 0.05s; animation-fill-mode: both; }
+.fields > *:nth-child(3) { animation-delay: 0.1s; animation-fill-mode: both; }
+.fields > *:nth-child(4) { animation-delay: 0.15s; animation-fill-mode: both; }
+.fields > *:nth-child(5) { animation-delay: 0.2s; animation-fill-mode: both; }
