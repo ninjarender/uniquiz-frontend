@@ -20,6 +20,7 @@ import type {
 import { Button, TextArea, TextField } from '../shared/controls';
 import { ErrorBox } from '../shared/controls';
 import { Modal, useToast } from '../shared/ui';
+import { CreateRoomModal } from './bank/CreateRoomModal';
 import { ModerationModal } from './bank/ModerationModal';
 import styles from './BankScreen.module.css';
 import { TeacherLayout } from './TeacherLayout';
@@ -91,6 +92,7 @@ export function BankScreen() {
   const [job, setJob] = useState<GenerationJob | null>(null);
   const [moderatingId, setModeratingId] = useState<string | null>(null);
   const [accepting, setAccepting] = useState(false);
+  const [creatingRoom, setCreatingRoom] = useState(false);
 
   const jobActive = job?.status === 'queued' || job?.status === 'running';
 
@@ -391,8 +393,15 @@ export function BankScreen() {
                 >
                   📄 Імпорт з DOCX
                 </Button>
-                <Button onClick={() => navigate('/live')}>
-                  ▶ Запустити live-сесію (демо)
+                <Button
+                  title={
+                    bank.readyCount === 0
+                      ? 'Спершу прийміть комплекти на модерації'
+                      : 'Створити кімнату для гри з цього банку'
+                  }
+                  onClick={() => setCreatingRoom(true)}
+                >
+                  ▶ Створити кімнату
                 </Button>
               </div>
             </div>
@@ -561,6 +570,10 @@ export function BankScreen() {
             </Button>
           </form>
         </Modal>
+      )}
+
+      {creatingRoom && bank && (
+        <CreateRoomModal bank={bank} onClose={() => setCreatingRoom(false)} />
       )}
 
       {moderating && isModeratable(moderating.answerSet) && (

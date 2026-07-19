@@ -188,6 +188,40 @@ export const GenerationApi = {
   status: (bankId: string) => api<GenerationJob>(`/banks/${bankId}/generation`),
 };
 
+export type RoomMode = 'solo' | 'multiplayer';
+export interface RoomSettings {
+  mode: RoomMode;
+  /** How many random questions are drawn from the bank (min 1). */
+  questionCount: number;
+  /** Hard per-question time limit shared by the room (min 5). */
+  timePerQuestionSeconds: number;
+}
+export interface RoomCreate {
+  bankId: string;
+  hostNickname: string;
+  settings: RoomSettings;
+}
+export interface RoomCreated {
+  roomId: string;
+  /** Unique link the host shares with players. */
+  joinUrl: string;
+  /** Host secret for join_room; never shown to anyone but the creator. */
+  hostToken: string;
+}
+
+export const RoomsApi = {
+  create: (body: RoomCreate) => api<RoomCreated>('/rooms', { method: 'POST', body }),
+};
+
+/* Host token survives a refresh in the same tab; join_room (Socket.IO) will need it. */
+const hostTokenKey = (roomId: string) => `uniquiz.hostToken.${roomId}`;
+export function saveHostToken(roomId: string, hostToken: string): void {
+  sessionStorage.setItem(hostTokenKey(roomId), hostToken);
+}
+export function getHostToken(roomId: string): string | null {
+  return sessionStorage.getItem(hostTokenKey(roomId));
+}
+
 export const ImagesApi = {
   upload: (file: File) => {
     const formData = new FormData();
