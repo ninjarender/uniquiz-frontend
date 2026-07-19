@@ -1,0 +1,95 @@
+/* Host game history: expandable rows with final leaderboards. */
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 28px;
+}
+
+.title { font-size: 20px; font-weight: 800; }
+
+.errorWrap { max-width: 560px; }
+.retryBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.loading { padding: 24px 0; font-size: 13px; color: rgb(255 255 255 / 0.65); }
+
+.empty {
+  display: flex;
+  max-width: 460px;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  align-self: center;
+  margin-top: 48px;
+  text-align: center;
+}
+.emptyIcon { font-size: 44px; }
+.emptyTitle { font-size: 16px; font-weight: 800; }
+.emptyText { font-size: 12.5px; color: rgb(255 255 255 / 0.65); }
+
+.list {
+  display: flex;
+  max-width: 760px;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.game {
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.06);
+  overflow: hidden;
+}
+
+.gameRow {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  overflow: hidden;
+  border: none;
+  background: none;
+  padding: 14px 18px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.gameRow:hover { background: rgb(255 255 255 / 0.05); }
+
+.gameBank { font-size: 14.5px; font-weight: 800; }
+.gameMeta { margin-top: 3px; font-size: 12px; color: rgb(255 255 255 / 0.6); }
+.chevron { font-size: 14px; color: rgb(255 255 255 / 0.55); }
+
+.board {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.board th {
+  padding: 8px 18px;
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgb(255 255 255 / 0.5);
+}
+.board td {
+  border-top: 1px solid rgb(255 255 255 / 0.07);
+  padding: 9px 18px;
+}
+.thPlace { width: 44px; }
+.thNum { text-align: right; }
+.board td.thNum { font-variant-numeric: tabular-nums; }
+.rowLeader td { background: rgb(255 208 47 / 0.08); font-weight: 700; }

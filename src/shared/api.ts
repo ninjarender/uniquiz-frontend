@@ -235,6 +235,30 @@ export function getHostToken(roomId: string): string | null {
   return sessionStorage.getItem(hostTokenKey(roomId));
 }
 
+/** Leaderboard row — both in-game events and game_results.leaderboard. */
+export interface LeaderboardEntry {
+  nickname: string;
+  totalScore: number;
+  correctAnswers: number;
+  /** Average over regular questions (without trap). */
+  avgResponseMs?: number;
+}
+/** One finished game from the host's history. */
+export interface GameResult {
+  id: string;
+  bankId: string;
+  bankName?: string;
+  mode: RoomMode;
+  questionCount: number;
+  finishedAt: string;
+  leaderboard: LeaderboardEntry[];
+}
+
+export const GameResultsApi = {
+  /** Finished games of the current host, newest first. */
+  list: () => api<GameResult[]>('/game-results'),
+};
+
 export const ImagesApi = {
   upload: (file: File) => {
     const formData = new FormData();

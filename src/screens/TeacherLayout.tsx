@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../shared/auth';
 import { FloatingShapes, useToast } from '../shared/ui';
 import type { ShapeSpec } from '../shared/ui';
@@ -18,9 +18,11 @@ const SIDEBAR_SHAPES: ShapeSpec[] = [
 export function TeacherLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { toast } = useToast();
 
   const initials = (user?.email ?? '?').slice(0, 2).toUpperCase();
+  const onHistory = pathname.startsWith('/teacher/history');
 
   return (
     <div className={styles.layout}>
@@ -32,8 +34,21 @@ export function TeacherLayout({ children }: { children: ReactNode }) {
         </button>
 
         <nav className={styles.nav}>
-          <button type="button" data-ripple className={`${styles.navItem} ${styles.navItemActive}`}>
+          <button
+            type="button"
+            onClick={() => navigate('/teacher')}
+            data-ripple
+            className={`${styles.navItem} ${onHistory ? '' : styles.navItemActive}`}
+          >
             <span className={styles.navIcon}>📚</span> Мої банки
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/teacher/history')}
+            data-ripple
+            className={`${styles.navItem} ${onHistory ? styles.navItemActive : ''}`}
+          >
+            <span className={styles.navIcon}>🏆</span> Історія ігор
           </button>
           <button
             type="button"

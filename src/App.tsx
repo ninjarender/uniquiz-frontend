@@ -6,6 +6,7 @@ import { ToastProvider } from './shared/ui';
 import { DemoGameProvider } from './demo/engine';
 import { BankScreen } from './screens/BankScreen';
 import { DashboardScreen } from './screens/DashboardScreen';
+import { HistoryScreen } from './screens/HistoryScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { JoinScreen } from './screens/play/JoinScreen';
 import { LobbyScreen } from './screens/play/LobbyScreen';
@@ -73,6 +74,14 @@ export default function App() {
               element={
                 <RequireAuth>
                   <DashboardScreen />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/teacher/history"
+              element={
+                <RequireAuth>
+                  <HistoryScreen />
                 </RequireAuth>
               }
             />
