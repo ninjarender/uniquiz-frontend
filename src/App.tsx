@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { AuthProvider, useAuth } from './shared/auth';
 import { ToastProvider } from './shared/ui';
 import { DemoGameProvider } from './demo/engine';
+import { GameProvider } from './shared/game';
 import { BankScreen } from './screens/BankScreen';
 import { DashboardScreen } from './screens/DashboardScreen';
 import { HistoryScreen } from './screens/HistoryScreen';
@@ -58,7 +59,9 @@ export default function App() {
   return (
     <ToastProvider>
       <AuthProvider>
+        {/* Demo engine stays until every screen moves to GameProvider (task 0071). */}
         <DemoGameProvider>
+        <GameProvider>
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<HomeScreen />} />
@@ -96,6 +99,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
+        </GameProvider>
         </DemoGameProvider>
       </AuthProvider>
     </ToastProvider>

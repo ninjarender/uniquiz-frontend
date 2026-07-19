@@ -11,6 +11,8 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:3000',
       '/uploads': 'http://localhost:3000',
+      // Socket.IO handshake + websocket upgrade (game protocol, tasks 0051+).
+      '/socket.io': { target: 'http://localhost:3000', ws: true },
     },
   },
 })
