@@ -39,6 +39,24 @@
 .generateBtn { background: linear-gradient(135deg, #7b2ff7, #4a90d9); }
 .mutedBtn { opacity: 0.7; }
 
+.genBanner {
+  margin-top: 12px;
+  border-radius: 12px;
+  background: #ede7fb;
+  padding: 10px 16px;
+  font-size: 12px;
+  color: #4a3a7a;
+}
+
+.genErrorBanner {
+  margin-top: 12px;
+  border-radius: 12px;
+  background: #fdeaea;
+  padding: 10px 16px;
+  font-size: 12px;
+  color: #8f2f2f;
+}
+
 .demoBanner {
   margin-top: 12px;
   border-radius: 12px;

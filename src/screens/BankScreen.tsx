@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import type { FormEvent } from 'react';
 import { ApiError, BanksApi, GenerationApi, ImagesApi, QuestionsApi } from '../shared/api';
-import type { AnswerSetStatus, BankDetailed, Question } from '../shared/api';
+import type { AnswerSetStatus, BankDetailed, GenerationJob, Question } from '../shared/api';
 import { Button, TextArea, TextField } from '../shared/controls';
 import { ErrorBox } from '../shared/controls';
 import { Modal, useToast } from '../shared/ui';
@@ -67,8 +67,11 @@ export function BankScreen() {
   const fileInput = useRef<HTMLInputElement>(null);
   // Client-only demo answer sets (until backend generation, tasks 0013-0017).
   const [demoSets, setDemoSets] = useState<Map<string, DemoSet>>(new Map());
-  const [generating, setGenerating] = useState(false);
+  const [starting, setStarting] = useState(false);
+  const [job, setJob] = useState<GenerationJob | null>(null);
   const [moderating, setModerating] = useState<Question | null>(null);
+
+  const jobActive = job?.status === 'queued' || job?.status === 'running';
 
   const effectiveSet = (question: Question): DemoSet | undefined =>
     question.answerSet
@@ -81,20 +84,22 @@ export function BankScreen() {
       toast('Спершу додайте запитання');
       return;
     }
-    setGenerating(true);
+    setStarting(true);
     try {
-      await GenerationApi.start(bank.id);
+      const started = await GenerationApi.start(bank.id);
+      setJob(started);
       toast('Генерацію запущено');
       reload();
     } catch (caught) {
       if (caught instanceof ApiError && caught.statusCode === 409) {
-        // Already running — stay in the "in progress" state; live status arrives with task 0043.
+        // Already running — pick up the active job and start tracking it.
         toast('Генерація для цього банку вже виконується');
-        reload();
+        setJob(await GenerationApi.status(bank.id).catch(() => null));
         return;
       }
-      setGenerating(false);
       toast(caught instanceof ApiError ? caught.message : 'Немає звʼязку з сервером');
+    } finally {
+      setStarting(false);
     }
   };
 
@@ -116,6 +121,42 @@ export function BankScreen() {
   }, [bankId, navigate, toast]);
 
   useEffect(reload, [reload]);
+
+  // Pick up a generation that is already active (e.g. after a page refresh).
+  useEffect(() => {
+    if (!bankId) return;
+    GenerationApi.status(bankId)
+      .then((current) => {
+        if (current.status === 'queued' || current.status === 'running') setJob(current);
+      })
+      .catch(() => undefined); // status is auxiliary here — bank load reports real errors
+  }, [bankId]);
+
+  // Poll while the job is active; the interval dies as soon as jobActive flips off.
+  useEffect(() => {
+    if (!bankId || !jobActive) return;
+    const timer = setInterval(() => {
+      GenerationApi.status(bankId)
+        .then((next) => {
+          setJob(next);
+          if (next.status === 'done') {
+            toast('Генерація завершена — комплекти чекають модерації');
+            reload();
+          } else if (next.status === 'failed') {
+            reload();
+          }
+        })
+        .catch(() => undefined); // transient polling error — keep trying
+    }, 2000);
+    return () => clearInterval(timer);
+  }, [bankId, jobActive, reload, toast]);
+
+  // Sets still being processed by the worker; done = the rest of the job's total.
+  const setsInFlight = ['generating', 'self_check', 'regenerating'].reduce(
+    (sum, status) => sum + (job?.countsByStatus?.[status] ?? 0),
+    0,
+  );
+  const setsDone = job ? Math.max(0, job.total - setsInFlight) : 0;
 
   const openCreate = () => {
     setForm({ text: '', referenceAnswer: '', imageUrl: null });
@@ -226,11 +267,11 @@ export function BankScreen() {
                 <Button
                   variant="purple"
                   className={styles.generateBtn}
-                  disabled={generating}
+                  disabled={starting || jobActive}
                   title="Поставити генерацію комплектів у чергу на бекенді"
                   onClick={() => void startGeneration()}
                 >
-                  {generating ? '⏳ Генерується…' : '✨ Згенерувати відповіді (ШІ)'}
+                  {starting || jobActive ? '⏳ Генерується…' : '✨ Згенерувати відповіді (ШІ)'}
                 </Button>
                 <Button
                   variant="purple"
@@ -244,6 +285,19 @@ export function BankScreen() {
                 </Button>
               </div>
             </div>
+
+            {jobActive && job && (
+              <div className={styles.genBanner}>
+                ⏳ Генерація йде: готово {setsDone} з {job.total}. Комплекти
+                зʼявляться в таблиці після завершення.
+              </div>
+            )}
+            {job?.status === 'failed' && (
+              <div className={styles.genErrorBanner}>
+                ⚠ Генерація не вдалася{job.error ? `: ${job.error}` : ''}. Можна
+                запустити ще раз.
+              </div>
+            )}
 
             {demoSets.size > 0 && (
               <div className={styles.demoBanner}>

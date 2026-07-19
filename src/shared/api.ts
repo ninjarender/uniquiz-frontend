@@ -166,6 +166,7 @@ export const QuestionsApi = {
 export const GenerationApi = {
   start: (bankId: string) =>
     api<GenerationJob>(`/banks/${bankId}/generation`, { method: 'POST' }),
+  status: (bankId: string) => api<GenerationJob>(`/banks/${bankId}/generation`),
 };
 
 export const ImagesApi = {
