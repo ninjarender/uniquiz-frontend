@@ -163,6 +163,11 @@ export const QuestionsApi = {
     api<void>(`/questions/${questionId}`, { method: 'DELETE' }),
 };
 
+export const AnswerSetsApi = {
+  accept: (answerSetId: string) =>
+    api<AnswerSet>(`/answer-sets/${answerSetId}/accept`, { method: 'POST' }),
+};
+
 export const GenerationApi = {
   start: (bankId: string) =>
     api<GenerationJob>(`/banks/${bankId}/generation`, { method: 'POST' }),

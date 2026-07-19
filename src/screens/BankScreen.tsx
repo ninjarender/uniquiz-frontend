@@ -1,13 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import type { FormEvent } from 'react';
-import { ApiError, BanksApi, GenerationApi, ImagesApi, QuestionsApi } from '../shared/api';
-import type { AnswerSetStatus, BankDetailed, GenerationJob, Question } from '../shared/api';
+import {
+  AnswerSetsApi,
+  ApiError,
+  BanksApi,
+  GenerationApi,
+  ImagesApi,
+  QuestionsApi,
+} from '../shared/api';
+import type {
+  AnswerSet,
+  AnswerSetStatus,
+  BankDetailed,
+  GenerationJob,
+  Question,
+} from '../shared/api';
 import { Button, TextArea, TextField } from '../shared/controls';
 import { ErrorBox } from '../shared/controls';
 import { Modal, useToast } from '../shared/ui';
 import { ModerationModal } from './bank/DemoModeration';
-import type { DemoSet } from './bank/DemoModeration';
 import styles from './BankScreen.module.css';
 import { TeacherLayout } from './TeacherLayout';
 
@@ -47,7 +59,7 @@ interface QuestionFormState {
   imageUrl: string | null;
 }
 
-/** Bank editor: questions table + create/edit modal + demo AI moderation. */
+/** Bank editor: questions table, create/edit modal, AI generation + moderation. */
 export function BankScreen() {
   const { bankId } = useParams<'bankId'>();
   const navigate = useNavigate();
@@ -65,18 +77,21 @@ export function BankScreen() {
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
-  // Client-only demo answer sets (until backend generation, tasks 0013-0017).
-  const [demoSets, setDemoSets] = useState<Map<string, DemoSet>>(new Map());
   const [starting, setStarting] = useState(false);
   const [job, setJob] = useState<GenerationJob | null>(null);
-  const [moderating, setModerating] = useState<Question | null>(null);
+  const [moderatingId, setModeratingId] = useState<string | null>(null);
+  const [accepting, setAccepting] = useState(false);
 
   const jobActive = job?.status === 'queued' || job?.status === 'running';
 
-  const effectiveSet = (question: Question): DemoSet | undefined =>
-    question.answerSet
-      ? undefined // real sets will get their own moderation with tasks 0015+
-      : demoSets.get(question.id);
+  // Sets still being processed by the worker are not moderatable yet.
+  const isModeratable = (set: AnswerSet | undefined): set is AnswerSet =>
+    !!set && ['in_review', 'accepted', 'edited'].includes(set.status);
+
+  // Resolve from bank state so the modal always sees the freshest set.
+  const moderating = moderatingId
+    ? bank?.questions.find((question) => question.id === moderatingId)
+    : undefined;
 
   const startGeneration = async () => {
     if (!bank) return;
@@ -100,6 +115,37 @@ export function BankScreen() {
       toast(caught instanceof ApiError ? caught.message : 'Немає звʼязку з сервером');
     } finally {
       setStarting(false);
+    }
+  };
+
+  const acceptSet = async (set: AnswerSet) => {
+    setAccepting(true);
+    try {
+      const updated = await AnswerSetsApi.accept(set.id);
+      setBank((previous) => {
+        if (!previous) return previous;
+        const questions = previous.questions.map((question) =>
+          question.id === updated.questionId ? { ...question, answerSet: updated } : question,
+        );
+        const readyCount = questions.filter(
+          (question) =>
+            question.answerSet &&
+            ['accepted', 'edited'].includes(question.answerSet.status),
+        ).length;
+        return { ...previous, questions, readyCount };
+      });
+      toast('Комплект прийнято — запитання готове до гри');
+      setModeratingId(null);
+    } catch (caught) {
+      if (caught instanceof ApiError && caught.statusCode === 409) {
+        toast('Комплект уже не на модерації — оновлюю банк');
+        setModeratingId(null);
+        reload();
+        return;
+      }
+      toast(caught instanceof ApiError ? caught.message : 'Немає звʼязку з сервером');
+    } finally {
+      setAccepting(false);
     }
   };
 
@@ -299,13 +345,6 @@ export function BankScreen() {
               </div>
             )}
 
-            {demoSets.size > 0 && (
-              <div className={styles.demoBanner}>
-                ⚠ Демо-комплекти живуть лише в цій вкладці і не збережені в базі —
-                реальна генерація підключиться з бекенд-таскою 0013.
-              </div>
-            )}
-
             {bank.questions.length === 0 ? (
               <div className={styles.empty}>
                 <div className={styles.emptyIcon}>❓</div>
@@ -336,9 +375,9 @@ export function BankScreen() {
                       <tr
                         key={question.id}
                         onClick={() => {
-                          if (effectiveSet(question)) setModerating(question);
+                          if (isModeratable(question.answerSet)) setModeratingId(question.id);
                         }}
-                        className={effectiveSet(question) ? styles.rowClickable : ''}
+                        className={isModeratable(question.answerSet) ? styles.rowClickable : ''}
                       >
                         <td>{index + 1}</td>
                         <td className={styles.cellText}>{question.text}</td>
@@ -355,16 +394,7 @@ export function BankScreen() {
                           )}
                         </td>
                         <td>
-                          <StatusChip
-                            question={
-                              effectiveSet(question)
-                                ? { ...question, answerSet: effectiveSet(question) }
-                                : question
-                            }
-                          />
-                          {effectiveSet(question) && (
-                            <span className={styles.demoMark}>демо</span>
-                          )}
+                          <StatusChip question={question} />
                         </td>
                         <td>
                           <div className={styles.rowActions}>
@@ -468,18 +498,13 @@ export function BankScreen() {
         </Modal>
       )}
 
-      {moderating && effectiveSet(moderating) && (
+      {moderating && isModeratable(moderating.answerSet) && (
         <ModerationModal
           question={moderating}
-          set={effectiveSet(moderating)!}
-          onClose={() => setModerating(null)}
-          onChange={(next) =>
-            setDemoSets((previous) => {
-              const map = new Map(previous);
-              map.set(moderating.id, next);
-              return map;
-            })
-          }
+          set={moderating.answerSet}
+          busy={accepting}
+          onClose={() => setModeratingId(null)}
+          onAccept={() => void acceptSet(moderating.answerSet!)}
         />
       )}
 
