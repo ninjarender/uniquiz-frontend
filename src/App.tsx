@@ -8,6 +8,8 @@ import { DashboardScreen } from './screens/DashboardScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { JoinScreen } from './screens/play/JoinScreen';
 import { LobbyScreen } from './screens/play/LobbyScreen';
+import { RoundScreen } from './screens/play/RoundScreen';
+import { RoundResultScreen } from './screens/play/RoundResultScreen';
 
 /** Routes that require a logged-in host; waits for the token check. */
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -36,6 +38,8 @@ export default function App() {
             <Route path="/" element={<HomeScreen />} />
             <Route path="/play" element={<JoinScreen />} />
             <Route path="/play/lobby" element={<LobbyScreen />} />
+            <Route path="/play/round" element={<RoundScreen />} />
+            <Route path="/play/result" element={<RoundResultScreen />} />
             <Route
               path="/teacher"
               element={

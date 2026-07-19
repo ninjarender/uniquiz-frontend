@@ -204,3 +204,51 @@ body {
 .chip-in_review { background: rgba(216, 158, 0, 0.25); color: #ffd02f; }
 .chip-generating, .chip-self_check, .chip-regenerating { background: rgba(19, 104, 206, 0.25); color: #8fc1ff; }
 .chip-none { background: rgba(255, 255, 255, 0.1); color: #bbb; }
+
+/* ---------- round screen (S1) ---------- */
+.timer-ring {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+  color: #fff;
+  background:
+    radial-gradient(closest-side, #38126e 78%, transparent 79% 100%),
+    conic-gradient(var(--accent) calc(var(--left) * 1%), rgba(255, 255, 255, 0.16) 0);
+}
+
+.answer-tile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  border-radius: 12px;
+  padding: 13px 12px;
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.12s ease, outline-color 0.12s ease, filter 0.12s ease;
+  outline: 3px solid transparent;
+}
+.answer-tile:hover { transform: translateY(-1px); filter: brightness(1.06); }
+.answer-tile.selected { outline-color: var(--accent); transform: scale(1.02); }
+.answer-tile.locked { cursor: default; filter: saturate(0.72) brightness(0.8); }
+.answer-tile.locked.selected { filter: none; }
+.a-red { background: var(--red); }
+.a-blue { background: var(--blue); }
+.a-yellow { background: var(--yellow); }
+.a-green { background: var(--green); }
+
+/* Spoiler mask: blurred until hovered/touched; one element at a time by cursor. */
+.spoiler .sp {
+  filter: blur(7px);
+  transition: filter 0.12s ease;
+  user-select: none;
+}
+.spoiler:hover .sp, .spoiler.revealed .sp { filter: blur(0); }
