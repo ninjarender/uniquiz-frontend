@@ -178,6 +178,8 @@ export const AnswerSetsApi = {
     api<AnswerSet>(`/answer-sets/${answerSetId}/accept`, { method: 'POST' }),
   update: (answerSetId: string, patch: AnswerSetPatch) =>
     api<AnswerSet>(`/answer-sets/${answerSetId}`, { method: 'PATCH', body: patch }),
+  regenerate: (answerSetId: string) =>
+    api<AnswerSet>(`/answer-sets/${answerSetId}/regenerate`, { method: 'POST' }),
 };
 
 export const GenerationApi = {

@@ -20,7 +20,7 @@ import type {
 import { Button, TextArea, TextField } from '../shared/controls';
 import { ErrorBox } from '../shared/controls';
 import { Modal, useToast } from '../shared/ui';
-import { ModerationModal } from './bank/DemoModeration';
+import { ModerationModal } from './bank/ModerationModal';
 import styles from './BankScreen.module.css';
 import { TeacherLayout } from './TeacherLayout';
 
@@ -162,6 +162,25 @@ export function BankScreen() {
     }
   };
 
+  const regenerateSet = async (set: AnswerSet) => {
+    setAccepting(true);
+    try {
+      const updated = await AnswerSetsApi.regenerate(set.id);
+      // Status regenerating unmounts the modal by itself: the set is no longer moderatable.
+      applySetUpdate(updated);
+      toast('Перегенерацію поставлено в чергу');
+      pickUpActiveJob();
+    } catch (caught) {
+      if (caught instanceof ApiError && caught.statusCode === 409) {
+        toast('Цей комплект уже перегенеровується');
+        return;
+      }
+      toast(caught instanceof ApiError ? caught.message : 'Немає звʼязку з сервером');
+    } finally {
+      setAccepting(false);
+    }
+  };
+
   const reload = useCallback(() => {
     if (!bankId) return;
     setError(null);
@@ -181,8 +200,8 @@ export function BankScreen() {
 
   useEffect(reload, [reload]);
 
-  // Pick up a generation that is already active (e.g. after a page refresh).
-  useEffect(() => {
+  // Pick up an active generation job (page refresh, single-set regeneration).
+  const pickUpActiveJob = useCallback(() => {
     if (!bankId) return;
     GenerationApi.status(bankId)
       .then((current) => {
@@ -190,6 +209,8 @@ export function BankScreen() {
       })
       .catch(() => undefined); // status is auxiliary here — bank load reports real errors
   }, [bankId]);
+
+  useEffect(pickUpActiveJob, [pickUpActiveJob]);
 
   // Poll while the job is active; the interval dies as soon as jobActive flips off.
   useEffect(() => {
@@ -518,6 +539,7 @@ export function BankScreen() {
           busy={accepting}
           onClose={() => setModeratingId(null)}
           onAccept={() => void acceptSet(moderating.answerSet!)}
+          onRegenerate={() => void regenerateSet(moderating.answerSet!)}
           onSave={(patch) => saveSet(moderating.answerSet!, patch)}
         />
       )}

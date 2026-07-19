@@ -3,12 +3,11 @@ import { ApiError } from '../../shared/api';
 import type { AnswerSet, AnswerSetPatch, Question } from '../../shared/api';
 import { Button, ErrorBox, TextArea, TextField } from '../../shared/controls';
 import { Modal } from '../../shared/ui';
-import styles from './DemoModeration.module.css';
+import styles from './ModerationModal.module.css';
 
 /**
- * Moderation modal for an AI-generated answer set (tasks 0044-0045).
- * Accept and save-edit hit the real backend; regenerate gets wired
- * with task 0046 (its button is stubbed until then).
+ * Moderation modal for an AI-generated answer set (tasks 0044-0046):
+ * accept, host edit and regenerate all go through the backend.
  */
 
 export function ModerationModal({
@@ -17,6 +16,7 @@ export function ModerationModal({
   busy,
   onClose,
   onAccept,
+  onRegenerate,
   onSave,
 }: {
   question: Question;
@@ -24,6 +24,7 @@ export function ModerationModal({
   busy: boolean;
   onClose: () => void;
   onAccept: () => void;
+  onRegenerate: () => void;
   /** Rejections surface next to the edit form, not as a toast. */
   onSave: (patch: AnswerSetPatch) => Promise<void>;
 }) {
@@ -179,8 +180,9 @@ export function ModerationModal({
             <Button variant="purple" onClick={() => setEditing(true)}>✏️ Правити</Button>
             <Button
               variant="purple"
-              disabled
-              title="Перегенерація підключиться з таскою 0046"
+              disabled={busy}
+              title="Повернути комплект на перегенерацію (потім знову на модерацію)"
+              onClick={onRegenerate}
             >
               ↻ Перегенерувати
             </Button>
