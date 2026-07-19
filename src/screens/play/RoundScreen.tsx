@@ -4,9 +4,8 @@ import { QUIZ_LEN, ROUND_TIME_S } from '../../demo/data';
 import { useDemoGame } from '../../demo/engine';
 import { Button } from '../../shared/controls';
 import { FloatingShapes } from '../../shared/ui';
-import type { CSSVars } from '../../shared/ui';
+import type { CSSVars, ShapeSpec } from '../../shared/ui';
 import styles from './RoundScreen.module.css';
-import type { ShapeSpec } from '../../shared/ui';
 
 const ROUND_SHAPES: ShapeSpec[] = [
   { glyph: '●', size: 54, top: '40%', left: '-14px' },
@@ -18,8 +17,10 @@ const TILE_ICONS = ['▲', '◆', '●', '■'];
 const TICK_MS = 100;
 
 /**
- * S1 - the round: shared timer, spoiler masks, pick-then-confirm
- * (changeable until confirmed), early finish when everyone confirmed.
+ * S1 - the round, Kahoot-style centered stage: header on top, question in
+ * the middle, 2x2 answers + confirm at the bottom. Spoiler masks, shared
+ * timer, pick-then-confirm (changeable until confirmed), early finish when
+ * everyone confirmed.
  */
 export function RoundScreen() {
   const game = useDemoGame();
@@ -93,73 +94,82 @@ export function RoundScreen() {
     <div className="grad-bg relative flex h-full flex-col overflow-hidden">
       <FloatingShapes shapes={ROUND_SHAPES} />
 
-      {/* top bar: progress · timer · score */}
-      <div className="relative flex items-center justify-between px-4 pt-4">
-        <div className="rounded-full bg-white/12 px-3.5 py-1.5 text-[12.5px] font-bold">
-          {game.currentIndex + 1} / {QUIZ_LEN}
-        </div>
-        <div className={styles.ring} style={{ '--left': leftPercent } as CSSVars}>
-          {leftSeconds}
-        </div>
-        <div className="rounded-full bg-white/12 px-3.5 py-1.5 text-[12.5px] font-bold">
-          🏆 {Math.round(you.score)}
-        </div>
-      </div>
-
-      {/* question card with a spoiler mask */}
-      <div className="group relative mx-4 mt-4 rounded-2xl bg-uq-dark p-5 text-center text-[15px] leading-snug font-bold select-none">
-        <div className="blur-[7px] transition-[filter] duration-100 group-hover:blur-none">
-          {question.text}
-        </div>
-      </div>
-
-      {/* answers */}
-      <div className="relative mx-4 mt-4 grid flex-1 auto-rows-min gap-2.5">
-        {question.options.map((option, index) => (
-          <button
-            key={index}
-            type="button"
-            disabled={confirmed}
-            onClick={() => setSelected((previous) => (previous === index ? null : index))}
-            className={`group flex cursor-pointer items-center gap-2.5 rounded-xl border-none px-3 py-[13px] text-left text-[13.5px] font-semibold text-white outline-3 transition-[transform,outline-color,filter] duration-100 select-none ${TILE_COLORS[index]} ${
-              selected === index
-                ? 'scale-[1.02] outline-uq-accent'
-                : 'outline-transparent'
-            } ${
-              confirmed
-                ? selected === index
-                  ? 'cursor-default'
-                  : 'cursor-default brightness-75 saturate-[0.72]'
-                : 'hover:-translate-y-px hover:brightness-105'
-            }`}
-          >
-            <span className="text-[16px]">{TILE_ICONS[index]}</span>
-            <span className="blur-[7px] transition-[filter] duration-100 group-hover:blur-none">
-              {option}
-            </span>
-            {selected === index && <span className="ml-auto text-uq-accent">✔</span>}
-          </button>
-        ))}
-      </div>
-
-      {/* confirm + waiting */}
-      <div className="relative px-4 pb-5">
-        {!confirmed ? (
-          <>
-            <Button className="w-full" onClick={() => setConfirmed(true)}>
-              {selected === null ? 'Підтвердити без відповіді' : 'Підтвердити відповідь'}
-            </Button>
-            <div className="mt-2 text-center text-[10.5px] text-white/50">
-              Вибір можна змінювати до підтвердження · відкрито може бути лише
-              один елемент · копіювання вимкнено
-            </div>
-          </>
-        ) : (
-          <div className="rounded-xl bg-white/10 px-4 py-3 text-center text-[12.5px] text-white/80">
-            <span className="mr-1 inline-block animate-pulse">⏳</span>
-            Відповідь зафіксовано — очікуємо інших гравців ({botsDone}/{totalBots})
+      <div className="relative mx-auto flex h-full w-full max-w-[960px] flex-col px-4 py-4 sm:px-6">
+        {/* top bar: progress · timer · score */}
+        <div className="flex items-center justify-between">
+          <div className="rounded-full bg-white/12 px-3.5 py-1.5 text-[13px] font-bold">
+            {game.currentIndex + 1} / {QUIZ_LEN}
           </div>
-        )}
+          <div className={styles.ring} style={{ '--left': leftPercent } as CSSVars}>
+            {leftSeconds}
+          </div>
+          <div className="rounded-full bg-white/12 px-3.5 py-1.5 text-[13px] font-bold">
+            🏆 {Math.round(you.score)}
+          </div>
+        </div>
+
+        {/* question, vertically centered in the remaining space */}
+        <div className="flex flex-1 items-center justify-center py-4">
+          <div className="group w-full max-w-[760px] rounded-2xl bg-uq-dark px-6 py-7 text-center text-[17px] leading-snug font-bold select-none sm:text-[21px]">
+            <div className="blur-[7px] transition-[filter] duration-100 group-hover:blur-none">
+              {question.text}
+            </div>
+          </div>
+        </div>
+
+        {/* answers: 2x2 on desktop, single column on phones */}
+        <div className="grid gap-3 sm:grid-cols-2">
+          {question.options.map((option, index) => (
+            <button
+              key={index}
+              type="button"
+              disabled={confirmed}
+              onClick={() =>
+                setSelected((previous) => (previous === index ? null : index))
+              }
+              className={`group flex min-h-[72px] cursor-pointer items-center gap-3 rounded-xl border-none px-4 py-4 text-left text-[14.5px] font-semibold text-white outline-3 transition-[transform,outline-color,filter] duration-100 select-none sm:text-[15.5px] ${TILE_COLORS[index]} ${
+                selected === index
+                  ? 'scale-[1.02] outline-uq-accent'
+                  : 'outline-transparent'
+              } ${
+                confirmed
+                  ? selected === index
+                    ? 'cursor-default'
+                    : 'cursor-default brightness-75 saturate-[0.72]'
+                  : 'hover:-translate-y-px hover:brightness-105'
+              }`}
+            >
+              <span className="text-[19px]">{TILE_ICONS[index]}</span>
+              <span className="blur-[7px] transition-[filter] duration-100 group-hover:blur-none">
+                {option}
+              </span>
+              {selected === index && <span className="ml-auto text-uq-accent">✔</span>}
+            </button>
+          ))}
+        </div>
+
+        {/* confirm + waiting, centered */}
+        <div className="mx-auto mt-4 w-full max-w-[440px] pb-1 text-center">
+          {!confirmed ? (
+            <>
+              <Button className="w-full" onClick={() => setConfirmed(true)}>
+                {selected === null
+                  ? 'Підтвердити без відповіді'
+                  : 'Підтвердити відповідь'}
+              </Button>
+              <div className="mt-2 text-[10.5px] text-white/50">
+                Вибір можна змінювати до підтвердження · відкрито може бути лише
+                один елемент · копіювання вимкнено
+              </div>
+            </>
+          ) : (
+            <div className="rounded-xl bg-white/10 px-4 py-3 text-[12.5px] text-white/80">
+              <span className="mr-1 inline-block animate-pulse">⏳</span>
+              Відповідь зафіксовано — очікуємо інших гравців ({botsDone}/
+              {totalBots})
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
