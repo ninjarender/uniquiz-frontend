@@ -1,13 +1,13 @@
 /* Conic-gradient timer ring; --left is set inline (percent of time left). */
 .ring {
-  width: 46px;
-  height: 46px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 15px;
+  font-size: 20px;
   color: #fff;
   background:
     radial-gradient(closest-side, #38126e 78%, transparent 79% 100%),

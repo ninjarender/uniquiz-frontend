@@ -94,23 +94,23 @@ export function RoundScreen() {
     <div className="grad-bg relative flex h-full flex-col overflow-hidden">
       <FloatingShapes shapes={ROUND_SHAPES} />
 
-      <div className="relative mx-auto flex h-full w-full max-w-[960px] flex-col px-4 py-4 sm:px-6">
+      <div className="relative mx-auto flex h-full w-full max-w-[1500px] flex-col px-4 py-4 sm:px-8">
         {/* top bar: progress · timer · score */}
         <div className="flex items-center justify-between">
-          <div className="rounded-full bg-white/12 px-3.5 py-1.5 text-[13px] font-bold">
+          <div className="rounded-full bg-white/12 px-5 py-2 text-[16px] font-bold">
             {game.currentIndex + 1} / {QUIZ_LEN}
           </div>
           <div className={styles.ring} style={{ '--left': leftPercent } as CSSVars}>
             {leftSeconds}
           </div>
-          <div className="rounded-full bg-white/12 px-3.5 py-1.5 text-[13px] font-bold">
+          <div className="rounded-full bg-white/12 px-5 py-2 text-[16px] font-bold">
             🏆 {Math.round(you.score)}
           </div>
         </div>
 
         {/* question, vertically centered in the remaining space */}
         <div className="flex flex-1 items-center justify-center py-4">
-          <div className="group w-full max-w-[760px] rounded-2xl bg-uq-dark px-6 py-7 text-center text-[17px] leading-snug font-bold select-none sm:text-[21px]">
+          <div className="group flex min-h-[160px] w-full items-center justify-center rounded-3xl bg-uq-dark px-8 py-10 text-center text-[22px] leading-snug font-bold shadow-[0_10px_40px_rgb(0_0_0/0.25)] select-none sm:min-h-[200px] sm:text-[30px]">
             <div className="blur-[7px] transition-[filter] duration-100 group-hover:blur-none">
               {question.text}
             </div>
@@ -118,7 +118,7 @@ export function RoundScreen() {
         </div>
 
         {/* answers: 2x2 on desktop, single column on phones */}
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           {question.options.map((option, index) => (
             <button
               key={index}
@@ -127,7 +127,7 @@ export function RoundScreen() {
               onClick={() =>
                 setSelected((previous) => (previous === index ? null : index))
               }
-              className={`group flex min-h-[72px] cursor-pointer items-center gap-3 rounded-xl border-none px-4 py-4 text-left text-[14.5px] font-semibold text-white outline-3 transition-[transform,outline-color,filter] duration-100 select-none sm:text-[15.5px] ${TILE_COLORS[index]} ${
+              className={`group flex min-h-[100px] cursor-pointer items-center gap-4 rounded-2xl border-none px-6 py-5 text-left text-[17px] font-bold text-white outline-4 transition-[transform,outline-color,filter] duration-100 select-none sm:min-h-[128px] sm:text-[21px] ${TILE_COLORS[index]} ${
                 selected === index
                   ? 'scale-[1.02] outline-uq-accent'
                   : 'outline-transparent'
@@ -139,31 +139,31 @@ export function RoundScreen() {
                   : 'hover:-translate-y-px hover:brightness-105'
               }`}
             >
-              <span className="text-[19px]">{TILE_ICONS[index]}</span>
+              <span className="text-[24px] sm:text-[30px]">{TILE_ICONS[index]}</span>
               <span className="blur-[7px] transition-[filter] duration-100 group-hover:blur-none">
                 {option}
               </span>
-              {selected === index && <span className="ml-auto text-uq-accent">✔</span>}
+              {selected === index && <span className="ml-auto text-[24px] text-uq-accent">✔</span>}
             </button>
           ))}
         </div>
 
         {/* confirm + waiting, centered */}
-        <div className="mx-auto mt-4 w-full max-w-[440px] pb-1 text-center">
+        <div className="mx-auto mt-5 w-full max-w-[560px] pb-1 text-center">
           {!confirmed ? (
             <>
-              <Button className="w-full" onClick={() => setConfirmed(true)}>
+              <Button className="w-full !py-3.5 !text-[16px]" onClick={() => setConfirmed(true)}>
                 {selected === null
                   ? 'Підтвердити без відповіді'
                   : 'Підтвердити відповідь'}
               </Button>
-              <div className="mt-2 text-[10.5px] text-white/50">
+              <div className="mt-2 text-[12px] text-white/50">
                 Вибір можна змінювати до підтвердження · відкрито може бути лише
                 один елемент · копіювання вимкнено
               </div>
             </>
           ) : (
-            <div className="rounded-xl bg-white/10 px-4 py-3 text-[12.5px] text-white/80">
+            <div className="rounded-xl bg-white/10 px-5 py-4 text-[14.5px] text-white/80">
               <span className="mr-1 inline-block animate-pulse">⏳</span>
               Відповідь зафіксовано — очікуємо інших гравців ({botsDone}/
               {totalBots})
