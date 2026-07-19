@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { BOT_NAMES, DEMO_BANK_NAME } from '../../demo/data';
 import { Button } from '../../shared/controls';
 import { FloatingShapes, Logo } from '../../shared/ui';
+import styles from './ProjectorScreen.module.css';
 import type { ShapeSpec } from '../../shared/ui';
 
 const PROJECTOR_SHAPES: ShapeSpec[] = [
@@ -46,58 +47,46 @@ export function ProjectorScreen() {
   const top = results[0]?.score ?? 1;
 
   return (
-    <div className="grad-bg relative flex h-full flex-col items-center justify-center gap-5 overflow-hidden px-6 text-center">
+    <div className={`grad-bg ${styles.screen}`}>
       <FloatingShapes shapes={PROJECTOR_SHAPES} />
-      <div className="absolute top-4 left-5"><Logo size={22} /></div>
-      <div className="absolute top-4 right-5 rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold tracking-wide text-uq-accent uppercase">
-        Демо · проєктор
-      </div>
+      <div className={styles.logoCorner}><Logo size={22} /></div>
+      <div className={styles.demoBadge}>Демо · проєктор</div>
 
       {phase === 'waiting' ? (
         <>
-          <div className="relative text-[14px] text-[#cdbfef]">
-            Приєднуйтесь на <b className="text-white">uniquiz.university.ua</b> · код кімнати:
+          <div className={styles.joinLine}>
+            Приєднуйтесь на <b className={styles.joinHost}>uniquiz.university.ua</b> · код кімнати:
           </div>
-          <div
-            className="relative text-[72px] font-extrabold tracking-[10px] text-uq-accent"
-            style={{ textShadow: '0 0 34px rgba(255,208,47,.35)' }}
-          >
-            {code}
-          </div>
-          <div className="relative text-[12.5px] text-white/60">
+          <div className={styles.code}>{code}</div>
+          <div className={styles.meta}>
             {DEMO_BANK_NAME} · учасників: {players.length}
           </div>
-          <div className="relative flex max-w-[640px] flex-wrap items-center justify-center gap-2.5">
+          <div className={styles.players}>
             {players.map((name) => (
               <span
                 key={name}
-                className="animate-card-in rounded-full bg-white/14 px-5 py-2.5 text-[15px] font-bold"
+                className={styles.playerPill}
                 
               >
                 {name}
               </span>
             ))}
           </div>
-          <Button className="relative mt-2" onClick={() => setPhase('results')}>
+          <Button className={`${styles.actionBtn} ${styles.startNote}`} onClick={() => setPhase('results')}>
             Завершити демо-сесію → підсумки
           </Button>
         </>
       ) : (
         <>
-          <div className="relative text-[30px] font-extrabold">Підсумки сесії</div>
-          <div className="relative flex items-end gap-4">
+          <div className={styles.title}>Підсумки сесії</div>
+          <div className={styles.podium}>
             {results.map((row, index) => (
-              <div key={row.name} className="flex flex-col items-center gap-1.5">
-                <div className="text-[13px] font-bold">{row.name}</div>
+              <div key={row.name} className={styles.barWrap}>
+                <div className={styles.barName}>{row.name}</div>
                 <div
-                  className="animate-card-in flex w-[86px] items-start justify-center rounded-t-xl pt-2 text-[12px] font-extrabold text-[#2a1259]"
+                  className={`${styles.bar} ${index === 0 ? styles.barLeader : ''}`}
                   style={{
                     height: `${(row.score / top) * 240}px`,
-                    background: index === 0
-                      ? 'linear-gradient(180deg,#ffd02f,#e8b400)'
-                      : 'linear-gradient(180deg,#a98ff2,#7b5fd0)',
-                    boxShadow: index === 0 ? '0 0 26px rgba(255,208,47,.35)' : undefined,
-                    
                     animationDelay: `${index * 120}ms`,
                   }}
                 >
@@ -106,11 +95,11 @@ export function ProjectorScreen() {
               </div>
             ))}
           </div>
-          <div className="relative max-w-[520px] text-[12px] text-white/60">
+          <div className={styles.note}>
             В аналітиці згодом: успішність за темами, аномальні запитання,
             підозрілі патерни відкриття спойлерів
           </div>
-          <Button variant="purple" className="relative" onClick={() => navigate('/teacher')}>
+          <Button variant="purple" className={styles.actionBtn} onClick={() => navigate('/teacher')}>
             ← до кабінету
           </Button>
         </>

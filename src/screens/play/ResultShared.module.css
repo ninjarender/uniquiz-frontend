@@ -1,0 +1,126 @@
+/* Shared bits of S2 round result and the final screen. */
+
+.screen {
+  position: relative;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  overflow: hidden;
+  padding: 0 16px;
+}
+
+.iconBubble {
+  position: relative;
+  display: flex;
+  height: 96px;
+  width: 96px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 44px;
+  font-weight: 800;
+  animation: var(--animate-pulse-big);
+}
+.iconCorrect {
+  background: var(--color-uq-green);
+  box-shadow: 0 0 0 10px rgb(38 137 12 / 0.25);
+}
+.iconWrong {
+  background: var(--color-uq-red);
+  box-shadow: 0 0 0 10px rgb(226 27 60 / 0.22);
+}
+
+.heading {
+  position: relative;
+  font-size: 22px;
+  font-weight: 800;
+}
+.gained {
+  position: relative;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-uq-accent);
+}
+
+.note {
+  position: relative;
+  max-width: 340px;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.1);
+  padding: 10px 16px;
+  text-align: center;
+  font-size: 12px;
+  color: rgb(255 255 255 / 0.85);
+}
+
+.board {
+  position: relative;
+  width: 100%;
+  max-width: 330px;
+  border-radius: 12px;
+  background: var(--color-uq-dark);
+  padding: 14px;
+}
+.boardTitle {
+  margin-bottom: 8px;
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #c9b8ec;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12.5px;
+}
+.rowYou {
+  background: var(--color-uq-purple);
+  outline: 2px solid var(--color-uq-accent);
+}
+.place { width: 16px; font-weight: 800; color: var(--color-uq-accent); }
+.name { flex: 1; font-weight: 600; }
+.small { font-size: 10.5px; color: rgb(255 255 255 / 0.55); }
+
+.medal {
+  position: relative;
+  font-size: 46px;
+  animation: var(--animate-pulse-big);
+}
+
+.stats {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  text-align: center;
+}
+.statBox {
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.12);
+  padding: 8px 16px;
+}
+.statValue { display: block; font-size: 17px; font-weight: 800; }
+.statLabel { font-size: 10px; color: rgb(255 255 255 / 0.65); }
+
+.actions {
+  position: relative;
+  display: flex;
+  gap: 10px;
+}
+.homeLink {
+  position: relative;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-size: 11.5px;
+  color: rgb(255 255 255 / 0.5);
+  text-decoration: underline;
+}
+.homeLink:hover { color: rgb(255 255 255 / 0.8); }
+.nextBtn { position: relative; }

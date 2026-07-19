@@ -1,0 +1,57 @@
+/* Shared buttons / fields / error box (design board primitives). */
+
+.btn {
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #fff;
+  transition: transform 0.1s ease, filter 0.1s ease;
+}
+.btn:hover { filter: brightness(1.1); }
+.btn:active { transform: translateY(2px); }
+.btn:disabled { cursor: not-allowed; opacity: 0.6; }
+
+.btnGreen {
+  background: linear-gradient(145deg, #2ea310, #1f7a08);
+  box-shadow: 0 3px 0 #145505;
+}
+.btnGreen:active { box-shadow: 0 1px 0 #145505; }
+
+.btnPurple {
+  background: linear-gradient(135deg, var(--color-uq-dark), #5b1fb0);
+  box-shadow: 0 3px 0 #1b0741;
+}
+.btnPurple:active { box-shadow: 0 1px 0 #1b0741; }
+
+.btnDanger {
+  background: linear-gradient(145deg, var(--color-uq-red), #b0132d);
+  box-shadow: 0 3px 0 #7a0d1f;
+}
+.btnDanger:active { box-shadow: 0 1px 0 #7a0d1f; }
+
+.field {
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  background: #fff;
+  padding: 11px 12px;
+  font-size: 13.5px;
+  color: #222;
+  outline: none;
+}
+.field::placeholder { color: #999; }
+.field:focus { box-shadow: 0 0 0 3px rgb(255 208 47 / 0.55); }
+
+.textarea { resize: vertical; }
+
+.errorBox {
+  border: 1px solid rgb(226 27 60 / 0.55);
+  border-radius: 8px;
+  background: rgb(226 27 60 / 0.18);
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: #ffb3c0;
+}

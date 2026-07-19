@@ -1,0 +1,136 @@
+/* T1 layout: dark sidebar with glow + Discord-like profile, light main area. */
+
+.layout {
+  display: flex;
+  height: 100%;
+  background: #f4f1fb;
+  color: #222;
+}
+
+.sidebar {
+  position: relative;
+  display: flex;
+  width: 230px;
+  flex-shrink: 0;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-uq-dark);
+  color: #fff;
+}
+
+.glow {
+  pointer-events: none;
+  position: absolute;
+  top: 33%;
+  left: 50%;
+  height: 260px;
+  width: 260px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(123 47 247 / 0.5), transparent 70%);
+  animation: var(--animate-glow-pulse);
+}
+
+.logoBtn {
+  position: relative;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 24px 20px;
+  text-align: left;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: #fff;
+}
+.logoAccent {
+  color: var(--color-uq-accent);
+  animation: var(--animate-logo-glow);
+}
+
+.nav {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.navItem {
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  padding: 10px 12px;
+  text-align: left;
+  color: rgb(255 255 255 / 0.6);
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.navItem:hover {
+  transform: translateX(4px);
+  background: rgb(255 255 255 / 0.08);
+  color: #fff;
+}
+.navItemActive {
+  background: rgb(255 255 255 / 0.12);
+  color: #fff;
+}
+.navItemActive:hover { transform: none; }
+
+.profile {
+  position: relative;
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(0 0 0 / 0.25);
+  padding: 12px;
+}
+.avatar {
+  position: relative;
+  display: flex;
+  height: 36px;
+  width: 36px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7b2ff7, var(--color-uq-purple));
+  font-size: 12px;
+  font-weight: 800;
+}
+.statusDot {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  height: 10px;
+  width: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--color-uq-dark);
+  background: #3ba55d;
+}
+.profileInfo { min-width: 0; flex: 1; }
+.profileName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 700;
+}
+.profileRole { font-size: 10.5px; color: rgb(255 255 255 / 0.5); }
+.logoutBtn {
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  padding: 6px;
+  font-size: 15px;
+}
+.logoutBtn:hover { background: rgb(255 255 255 / 0.1); }
+
+.main { min-width: 0; flex: 1; overflow: auto; }

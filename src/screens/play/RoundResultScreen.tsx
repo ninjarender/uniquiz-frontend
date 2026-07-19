@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDemoGame } from '../../demo/engine';
 import { Button } from '../../shared/controls';
 import { FloatingShapes, HOME_SHAPES } from '../../shared/ui';
+import styles from './ResultShared.module.css';
 
 /** S2 - round outcome + interim leaderboard (trap gets its own reveal). */
 export function RoundResultScreen() {
@@ -27,7 +28,6 @@ export function RoundResultScreen() {
       ? 'Правильно!'
       : 'Неправильно';
   const icon = outcome.isCorrect ? '✓' : isTrap ? '🪤' : '✗';
-  const iconBg = outcome.isCorrect ? 'var(--color-uq-green)' : 'var(--color-uq-red)';
 
   const next = () => {
     if (game.nextRound() === 'final') navigate('/play/final');
@@ -35,46 +35,41 @@ export function RoundResultScreen() {
   };
 
   return (
-    <div className="grad-bg relative flex h-full flex-col items-center justify-center gap-3.5 overflow-hidden px-4">
+    <div className={`grad-bg ${styles.screen}`}>
       <FloatingShapes shapes={HOME_SHAPES} />
 
       <div
-        className="animate-pulse-big relative flex h-[96px] w-[96px] items-center justify-center rounded-full text-[44px] font-extrabold"
-        style={{ background: iconBg, boxShadow: `0 0 0 10px ${outcome.isCorrect ? 'rgb(38 137 12 / 0.25)' : 'rgb(226 27 60 / 0.22)'}` }}
+        className={`${styles.iconBubble} ${outcome.isCorrect ? styles.iconCorrect : styles.iconWrong}`}
       >
         {icon}
       </div>
 
-      <div className="relative text-[22px] font-extrabold">{heading}</div>
-      <div className="relative text-[14px] font-bold text-uq-accent">
-        + {Math.round(outcome.gained)} балів
-      </div>
+      <div className={styles.heading}>{heading}</div>
+      <div className={styles.gained}>+ {Math.round(outcome.gained)} балів</div>
 
       {isTrap && (
-        <div className="relative max-w-[340px] rounded-xl bg-white/10 px-4 py-2.5 text-center text-[12px] text-white/85">
+        <div className={styles.note}>
           Усі 4 варіанти були неправильні — максимум балів отримує той, хто не
           обрав нічого. {outcome.question.explanation}
         </div>
       )}
       {!isTrap && !outcome.isCorrect && (
-        <div className="relative max-w-[340px] rounded-xl bg-white/10 px-4 py-2.5 text-center text-[12px] text-white/85">
+        <div className={styles.note}>
           Правильна відповідь:{' '}
           <b>{outcome.question.options[outcome.question.correctIndex]}</b>.{' '}
           {outcome.question.explanation}
         </div>
       )}
 
-      <div className="relative w-full max-w-[330px] rounded-xl bg-uq-dark p-3.5">
-        <div className="mb-2 text-center text-[10px] tracking-wide text-[#c9b8ec] uppercase">
-          Лідерборд
-        </div>
+      <div className={styles.board}>
+        <div className={styles.boardTitle}>Лідерборд</div>
         {leaderboard.map((player, index) => (
           <div
             key={player.name}
-            className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12.5px] ${player.isYou ? 'bg-uq-purple outline-2 outline-uq-accent' : ''}`}
+            className={`${styles.row} ${player.isYou ? styles.rowYou : ''}`}
           >
-            <b className="w-4 text-uq-accent">{index + 1}</b>
-            <span className="flex-1 font-semibold">
+            <b className={styles.place}>{index + 1}</b>
+            <span className={styles.name}>
               {player.name}
               {player.isYou && ' (ви)'}
             </span>
@@ -83,7 +78,7 @@ export function RoundResultScreen() {
         ))}
       </div>
 
-      <Button className="relative" onClick={next}>
+      <Button className={styles.nextBtn} onClick={next}>
         {game.currentIndex + 1 >= game.questions.length ? 'До підсумків →' : 'Далі →'}
       </Button>
     </div>

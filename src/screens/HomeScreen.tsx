@@ -5,12 +5,13 @@ import { ApiError } from '../shared/api';
 import { useAuth } from '../shared/auth';
 import { Button, ErrorBox, TextField } from '../shared/controls';
 import { FloatingShapes, HOME_SHAPES, Logo, useToast } from '../shared/ui';
+import styles from './HomeScreen.module.css';
 
 type Tab = 'login' | 'register';
 
 /**
  * D1 - the main screen: host login/registration plus the "join a game"
- * pill for players without an account (rooms arrive with backend 0018+).
+ * pill for players without an account.
  */
 export function HomeScreen() {
   const { user, login, register } = useAuth();
@@ -50,13 +51,10 @@ export function HomeScreen() {
         await register(email.trim(), password);
         toast('Акаунт створено — вітаємо в UniQuiz!');
       }
-      // The user effect above redirects after the auth store updates.
     } catch (caught) {
       if (caught instanceof ApiError) {
         setError(
-          caught.statusCode === 401
-            ? 'Невірний email або пароль'
-            : caught.message,
+          caught.statusCode === 401 ? 'Невірний email або пароль' : caught.message,
         );
       } else {
         setError('Немає звʼязку з сервером — перевірте, що бекенд запущений');
@@ -67,33 +65,32 @@ export function HomeScreen() {
   };
 
   return (
-    <div className="grad-bg relative flex h-full flex-col items-center justify-center gap-4 overflow-hidden">
+    <div className={`grad-bg ${styles.screen}`}>
       <FloatingShapes shapes={HOME_SHAPES} />
       <Logo />
-      <div className="relative max-w-[340px] text-center text-[12.5px] leading-relaxed text-[#cdbfef]">
+      <div className={styles.tagline}>
         Тестування без списування: індивідуальні варіанти, відповіді генерує ШІ,
         вміст під спойлерами
       </div>
 
-      <form className="relative flex w-[320px] flex-col gap-2.5 rounded-2xl bg-uq-dark p-5" onSubmit={(event) => void submit(event)}>
-        {/* tabs with a sliding indicator (design: auth-ind spring slide) */}
-        <div className="relative grid grid-cols-2 rounded-[10px] bg-white/10 p-1 text-[13px] font-bold">
+      <form className={styles.card} onSubmit={(event) => void submit(event)}>
+        <div className={styles.tabs}>
           <div
             aria-hidden
-            className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-uq-purple transition-transform duration-300 [transition-timing-function:cubic-bezier(.34,1.56,.64,1)]"
-            style={{ transform: tab === 'login' ? 'translateX(0)' : 'translateX(calc(100% + 0px))', left: 4 }}
+            className={styles.tabsIndicator}
+            style={{ transform: tab === 'login' ? 'translateX(0)' : 'translateX(100%)' }}
           />
           <button
             type="button"
             onClick={() => switchTab('login')}
-            className={`relative z-10 cursor-pointer rounded-lg border-none bg-transparent py-2 ${tab === 'login' ? 'text-white' : 'text-white/55'}`}
+            className={`${styles.tab} ${tab === 'login' ? styles.tabActive : ''}`}
           >
             Вхід
           </button>
           <button
             type="button"
             onClick={() => switchTab('register')}
-            className={`relative z-10 cursor-pointer rounded-lg border-none bg-transparent py-2 ${tab === 'register' ? 'text-white' : 'text-white/55'}`}
+            className={`${styles.tab} ${tab === 'register' ? styles.tabActive : ''}`}
           >
             Реєстрація
           </button>
@@ -123,20 +120,14 @@ export function HomeScreen() {
         <Button type="submit" disabled={busy}>
           {busy ? '…' : tab === 'login' ? 'Увійти' : 'Створити акаунт'}
         </Button>
-        <div className="text-center text-[11px] text-[#b9a8e6]">
-          В акаунті — ваші тести й банки запитань
-        </div>
+        <div className={styles.authNote}>В акаунті — ваші тести й банки запитань</div>
       </form>
 
-      <div className="relative text-[12px] text-[#cdbfef]">
+      <div className={styles.joinLabel}>
         Не хочете реєструватися? Просто приєднайтеся до сесії:
       </div>
-      <button
-        type="button"
-        onClick={() => navigate('/play')}
-        className="relative cursor-pointer rounded-full border-none bg-linear-135 from-uq-dark to-[#5b1fb0] px-6 py-3 text-[14px] font-bold text-white shadow-[0_3px_0_#1b0741] transition-transform hover:scale-[1.03] active:translate-y-[2px]"
-      >
-        <span className="mr-2 text-uq-accent">➜</span> Приєднатися до гри
+      <button type="button" onClick={() => navigate('/play')} className={styles.joinPill}>
+        <span className={styles.joinArrow}>➜</span> Приєднатися до гри
       </button>
     </div>
   );

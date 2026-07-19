@@ -4,6 +4,7 @@ import { QUIZ_LEN } from '../../demo/data';
 import { useDemoGame } from '../../demo/engine';
 import { Button } from '../../shared/controls';
 import { FloatingShapes, HOME_SHAPES, Logo, useToast } from '../../shared/ui';
+import styles from './ResultShared.module.css';
 
 /** Final: leaderboard, personal stats, play again / share (features.md). */
 export function FinalScreen() {
@@ -46,47 +47,45 @@ export function FinalScreen() {
   const medal = place === 1 ? '🥇' : place === 2 ? '🥈' : place === 3 ? '🥉' : '🎖';
 
   return (
-    <div className="grad-bg relative flex h-full flex-col items-center justify-center gap-3.5 overflow-hidden px-4">
+    <div className={`grad-bg ${styles.screen}`}>
       <FloatingShapes shapes={HOME_SHAPES} />
       <Logo size={24} />
 
-      <div className="animate-pulse-big relative text-[46px]">{medal}</div>
-      <div className="relative text-[21px] font-extrabold">
+      <div className={styles.medal}>{medal}</div>
+      <div className={styles.heading}>
         {place} місце · {Math.round(you.score)} балів
       </div>
 
-      <div className="relative flex gap-3 text-center">
-        <div className="rounded-xl bg-white/12 px-4 py-2">
-          <b className="block text-[17px]">{you.correct}/{QUIZ_LEN}</b>
-          <span className="text-[10px] text-white/65">правильних</span>
+      <div className={styles.stats}>
+        <div className={styles.statBox}>
+          <b className={styles.statValue}>{you.correct}/{QUIZ_LEN}</b>
+          <span className={styles.statLabel}>правильних</span>
         </div>
-        <div className="rounded-xl bg-white/12 px-4 py-2">
-          <b className="block text-[17px]">{avgSeconds.toFixed(1)} с</b>
-          <span className="text-[10px] text-white/65">середній час</span>
+        <div className={styles.statBox}>
+          <b className={styles.statValue}>{avgSeconds.toFixed(1)} с</b>
+          <span className={styles.statLabel}>середній час</span>
         </div>
       </div>
 
-      <div className="relative w-full max-w-[330px] rounded-xl bg-uq-dark p-3.5">
-        <div className="mb-2 text-center text-[10px] tracking-wide text-[#c9b8ec] uppercase">
-          Фінальний лідерборд
-        </div>
+      <div className={styles.board}>
+        <div className={styles.boardTitle}>Фінальний лідерборд</div>
         {leaderboard.map((player, index) => (
           <div
             key={player.name}
-            className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12.5px] ${player.isYou ? 'bg-uq-purple outline-2 outline-uq-accent' : ''}`}
+            className={`${styles.row} ${player.isYou ? styles.rowYou : ''}`}
           >
-            <b className="w-4 text-uq-accent">{index + 1}</b>
-            <span className="flex-1 font-semibold">
+            <b className={styles.place}>{index + 1}</b>
+            <span className={styles.name}>
               {player.name}
               {player.isYou && ' (ви)'}
             </span>
-            <span className="text-[10.5px] text-white/55">{player.correct}/{QUIZ_LEN}</span>
+            <span className={styles.small}>{player.correct}/{QUIZ_LEN}</span>
             <b>{Math.round(player.score)}</b>
           </div>
         ))}
       </div>
 
-      <div className="relative flex gap-2.5">
+      <div className={styles.actions}>
         <Button onClick={playAgain}>🔁 Зіграти ще раз</Button>
         <Button variant="purple" onClick={() => void share()}>
           📤 Поділитися
@@ -95,7 +94,7 @@ export function FinalScreen() {
       <button
         type="button"
         onClick={() => { game.reset(); navigate('/'); }}
-        className="relative cursor-pointer border-none bg-transparent text-[11.5px] text-white/50 underline hover:text-white/80"
+        className={styles.homeLink}
       >
         на головну
       </button>

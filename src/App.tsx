@@ -19,7 +19,7 @@ function RequireAuth({ children }: { children: ReactNode }) {
   const location = useLocation();
   if (user === undefined) {
     return (
-      <div className="grad-bg flex h-full items-center justify-center text-white/80">
+      <div className="grad-bg screen-loading">
         Завантаження…
       </div>
     );

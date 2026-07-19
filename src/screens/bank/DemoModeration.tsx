@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { AnswerSet, Question } from '../../shared/api';
 import { Button, TextArea, TextField } from '../../shared/controls';
 import { Modal, useToast } from '../../shared/ui';
+import styles from './DemoModeration.module.css';
 
 /**
  * Demo moderation of an AI answer set (prototype's moderation modal).
@@ -77,18 +78,14 @@ export function ModerationModal({
 
   return (
     <Modal title="Модерація комплекту відповідей" onClose={onClose}>
-      <div className="mb-3 rounded-xl bg-white/8 px-4 py-3 text-[13.5px] font-bold">
-        {question.text}
-      </div>
+      <div className={styles.questionBox}>{question.text}</div>
 
-      <div className="flex flex-col gap-2">
+      <div className={styles.options}>
         {draft.options.map((option, index) => (
           <div
             key={index}
-            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[12.5px] ${
-              index === draft.correctIndex
-                ? 'bg-uq-green/22 outline-1 outline-uq-green'
-                : 'bg-white/8'
+            className={`${styles.option} ${
+              index === draft.correctIndex ? styles.optionCorrect : ''
             }`}
           >
             {editing ? (
@@ -100,7 +97,7 @@ export function ModerationModal({
                   onChange={() => setDraft({ ...draft, correctIndex: index })}
                 />
                 <TextField
-                  className="!py-1.5 text-[12.5px]"
+                  className={styles.optionField}
                   value={option}
                   onChange={(event) => {
                     const options = [...draft.options];
@@ -111,14 +108,12 @@ export function ModerationModal({
               </>
             ) : (
               <>
-                <span className="w-4 text-center">
+                <span className={styles.optionMark}>
                   {index === draft.correctIndex ? '✅' : '·'}
                 </span>
                 <span>{option}</span>
                 {index === draft.correctIndex && (
-                  <span className="ml-auto text-[10px] font-bold text-[#7fe25a] uppercase">
-                    правильна
-                  </span>
+                  <span className={styles.correctTag}>правильна</span>
                 )}
               </>
             )}
@@ -126,11 +121,11 @@ export function ModerationModal({
         ))}
       </div>
 
-      <div className="mt-3 text-[11.5px] text-white/65">
-        <b className="text-white/85">Запасний дистрактор (для trap):</b>{' '}
+      <div className={styles.metaLine}>
+        <b className={styles.metaLabel}>Запасний дистрактор (для trap):</b>{' '}
         {editing ? (
           <TextField
-            className="mt-1 !py-1.5 text-[12px]"
+            className={`${styles.optionField} ${styles.metaField}`}
             value={draft.spareDistractor ?? ''}
             onChange={(event) => setDraft({ ...draft, spareDistractor: event.target.value })}
           />
@@ -139,11 +134,11 @@ export function ModerationModal({
         )}
       </div>
 
-      <div className="mt-2 text-[11.5px] text-white/65">
-        <b className="text-white/85">Пояснення:</b>{' '}
+      <div className={styles.metaLine}>
+        <b className={styles.metaLabel}>Пояснення:</b>{' '}
         {editing ? (
           <TextArea
-            className="mt-1 min-h-[64px] text-[12px]"
+            className={styles.metaTextarea}
             value={draft.explanation ?? ''}
             onChange={(event) => setDraft({ ...draft, explanation: event.target.value })}
           />
@@ -152,14 +147,12 @@ export function ModerationModal({
         )}
       </div>
 
-      <div className="mt-3 flex items-center gap-2 text-[11px] text-white/55">
+      <div className={styles.selfCheck}>
         Самоперевірка ШІ: {draft.selfCheckPassed ? '✅ збіг' : '⚠ розбіжність'}
-        <span className="ml-auto rounded-full bg-white/10 px-2 py-0.5 text-[9.5px] font-bold text-uq-accent uppercase">
-          демо
-        </span>
+        <span className={styles.demoBadge}>демо</span>
       </div>
 
-      <div className="mt-4 flex flex-wrap justify-end gap-2">
+      <div className={styles.actions}>
         {editing ? (
           <>
             <Button variant="purple" onClick={() => { setDraft(set); setEditing(false); }}>

@@ -5,6 +5,7 @@ import { useDemoGame } from '../../demo/engine';
 import { Button, TextField } from '../../shared/controls';
 import { FloatingShapes, Logo } from '../../shared/ui';
 import type { ShapeSpec } from '../../shared/ui';
+import styles from './JoinScreen.module.css';
 
 const JOIN_SHAPES: ShapeSpec[] = [
   { glyph: '▲', size: 64, top: '7%', left: '8%', spin: true },
@@ -27,34 +28,30 @@ export function JoinScreen() {
   };
 
   return (
-    <div className="grad-bg relative flex h-full flex-col items-center justify-center gap-3 overflow-hidden">
+    <div className={`grad-bg ${styles.screen}`}>
       <FloatingShapes shapes={JOIN_SHAPES} />
       <Logo />
-      <div className="relative text-[12.5px] text-[#cdbfef]">
-        Введіть код кімнати та ваше імʼя
-      </div>
+      <div className={styles.tagline}>Введіть код кімнати та ваше імʼя</div>
 
-      <form className="relative flex w-[300px] flex-col gap-2.5 rounded-2xl bg-uq-dark p-5" onSubmit={submit}>
+      <form className={styles.card} onSubmit={submit}>
         <TextField
-          className="text-center text-[17px] font-extrabold tracking-[4px]"
+          className={styles.codeField}
           placeholder="Код кімнати"
           autoFocus
           value={code}
           onChange={(event) => setCode(event.target.value)}
         />
         <TextField
-          className="text-center"
+          className={styles.nameField}
           placeholder="Ваше імʼя"
           value={name}
           onChange={(event) => setName(event.target.value)}
         />
         <Button type="submit">▶ Приєднатися</Button>
-        <div className="text-center text-[11px] text-[#b9a8e6]">
-          Код показує хост — на екрані чи проєкторі
-        </div>
+        <div className={styles.note}>Код показує хост — на екрані чи проєкторі</div>
       </form>
 
-      <div className="relative mt-2 rounded-full bg-white/10 px-4 py-1.5 text-[10.5px] font-bold tracking-wide text-uq-accent uppercase">
+      <div className={styles.demoBadge}>
         Демо-режим · кімнати підключаться з бекендом (0018+)
       </div>
     </div>

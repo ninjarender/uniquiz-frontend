@@ -1,0 +1,77 @@
+/* Lobby: room code, players joining, start button. */
+
+.screen {
+  position: relative;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  overflow: hidden;
+  padding: 0 16px;
+}
+
+.roomBox {
+  position: relative;
+  border-radius: 16px;
+  background: rgb(255 255 255 / 0.1);
+  padding: 8px 20px;
+  text-align: center;
+}
+.roomLabel {
+  font-size: 10.5px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #cdbfef;
+}
+.roomCode {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 6px;
+  color: var(--color-uq-accent);
+}
+
+.meta {
+  position: relative;
+  font-size: 12.5px;
+  color: #cdbfef;
+}
+
+.players {
+  position: relative;
+  display: flex;
+  max-width: 420px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.playerPill {
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.14);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  animation: var(--animate-card-in);
+}
+.playerYou {
+  background: var(--color-uq-accent);
+  color: #3a2b00;
+}
+
+.waiting {
+  position: relative;
+  height: 16px;
+  font-size: 12px;
+  color: rgb(255 255 255 / 0.6);
+}
+
+.note {
+  position: relative;
+  font-size: 10.5px;
+  color: rgb(255 255 255 / 0.45);
+}
+
+.startBtn { position: relative; }

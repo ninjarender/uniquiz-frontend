@@ -4,6 +4,7 @@ import { DEMO_BANK_NAME, QUIZ_LEN } from '../../demo/data';
 import { useDemoGame } from '../../demo/engine';
 import { Button } from '../../shared/controls';
 import { FloatingShapes, HOME_SHAPES, Logo } from '../../shared/ui';
+import styles from './LobbyScreen.module.css';
 
 /** Lobby: players joining live (bots), bank + mode, the demo user starts. */
 export function LobbyScreen() {
@@ -38,27 +39,24 @@ export function LobbyScreen() {
   };
 
   return (
-    <div className="grad-bg relative flex h-full flex-col items-center justify-center gap-4 overflow-hidden px-4">
+    <div className={`grad-bg ${styles.screen}`}>
       <FloatingShapes shapes={HOME_SHAPES} />
       <Logo size={26} />
 
-      <div className="relative rounded-2xl bg-white/10 px-5 py-2 text-center">
-        <div className="text-[10.5px] tracking-wide text-[#cdbfef] uppercase">Кімната</div>
-        <div className="text-[26px] font-extrabold tracking-[6px] text-uq-accent">
-          {game.roomCode}
-        </div>
+      <div className={styles.roomBox}>
+        <div className={styles.roomLabel}>Кімната</div>
+        <div className={styles.roomCode}>{game.roomCode}</div>
       </div>
 
-      <div className="relative text-[12.5px] text-[#cdbfef]">
+      <div className={styles.meta}>
         {DEMO_BANK_NAME} · Multiplayer · {QUIZ_LEN} запитань
       </div>
 
-      <div className="relative flex max-w-[420px] flex-wrap items-center justify-center gap-2">
+      <div className={styles.players}>
         {game.players.map((player) => (
           <span
             key={player.name}
-            className={`animate-card-in rounded-full px-4 py-2 text-[13px] font-bold ${player.isYou ? 'bg-uq-accent text-[#3a2b00]' : 'bg-white/14 text-white'}`}
-            
+            className={`${styles.playerPill} ${player.isYou ? styles.playerYou : ''}`}
           >
             {player.name}
             {player.isYou && ' (ви)'}
@@ -66,14 +64,12 @@ export function LobbyScreen() {
         ))}
       </div>
 
-      <div className="relative h-4 text-[12px] text-white/60">
-        очікуємо гравців{dots}
-      </div>
+      <div className={styles.waiting}>очікуємо гравців{dots}</div>
 
-      <Button className="relative" onClick={start} disabled={game.players.length < 2}>
+      <Button className={styles.startBtn} onClick={start} disabled={game.players.length < 2}>
         ▶ Почати гру ({game.players.length})
       </Button>
-      <div className="relative text-[10.5px] text-white/45">
+      <div className={styles.note}>
         Старт у Multiplayer можливий від 2 гравців · у демо гру запускаєте ви
       </div>
     </div>
