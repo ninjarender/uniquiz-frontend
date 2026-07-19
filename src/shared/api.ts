@@ -1,9 +1,13 @@
 /**
  * Thin fetch client for the UniQuiz REST API (tasks 0001-0012).
- * In dev the Vite proxy forwards /api and /uploads to the NestJS backend,
- * so the frontend always talks to its own origin (no CORS needed).
+ * By default the frontend talks to its own origin: in dev the Vite proxy
+ * forwards /api and /uploads to the NestJS backend (no CORS needed), in prod
+ * the same job is for a shared reverse proxy. For a split deploy set
+ * VITE_API_URL to the backend origin (plus CORS_ORIGIN and PUBLIC_BASE_URL
+ * on the backend, so imageUrl comes back absolute).
  */
-export const API_BASE = '/api/v1';
+export const API_ORIGIN = (import.meta.env.VITE_API_URL ?? '').replace(/\/+$/, '');
+export const API_BASE = `${API_ORIGIN}/api/v1`;
 
 const TOKEN_KEY = 'uniquiz.accessToken';
 
