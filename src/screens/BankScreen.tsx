@@ -54,6 +54,15 @@ function StatusChip({ question }: { question: Question }) {
   );
 }
 
+/** Statuses the worker moves a set through before it lands back in review. */
+const IN_FLIGHT_STATUSES: AnswerSetStatus[] = ['generating', 'self_check', 'regenerating'];
+
+const hasSetInFlight = (questions: Question[]): boolean =>
+  questions.some(
+    (question) =>
+      question.answerSet && IN_FLIGHT_STATUSES.includes(question.answerSet.status),
+  );
+
 interface QuestionFormState {
   text: string;
   referenceAnswer: string;
@@ -232,11 +241,33 @@ export function BankScreen() {
   }, [bankId, jobActive, reload, toast]);
 
   // Sets still being processed by the worker; done = the rest of the job's total.
-  const setsInFlight = ['generating', 'self_check', 'regenerating'].reduce(
+  // Right after 202 there is no countsByStatus yet — that means 0 done, not total.
+  const setsInFlight = IN_FLIGHT_STATUSES.reduce(
     (sum, status) => sum + (job?.countsByStatus?.[status] ?? 0),
     0,
   );
-  const setsDone = job ? Math.max(0, job.total - setsInFlight) : 0;
+  const setsDone = job?.countsByStatus ? Math.max(0, job.total - setsInFlight) : 0;
+
+  // Single-set regeneration is not reflected in the bank-level job status —
+  // GET /generation stays "done" while the per-set task runs. Watch the bank
+  // itself whenever a set is in flight without an active job.
+  const regenInFlight =
+    !jobActive && !!bank && hasSetInFlight(bank.questions);
+
+  useEffect(() => {
+    if (!bankId || !regenInFlight) return;
+    const timer = setInterval(() => {
+      BanksApi.get(bankId)
+        .then((fresh) => {
+          setBank(fresh);
+          if (!hasSetInFlight(fresh.questions)) {
+            toast('Перегенерація завершена — комплект знову на модерації');
+          }
+        })
+        .catch(() => undefined); // transient polling error — keep trying
+    }, 2500);
+    return () => clearInterval(timer);
+  }, [bankId, regenInFlight, toast]);
 
   const openCreate = () => {
     setForm({ text: '', referenceAnswer: '', imageUrl: null });
