@@ -21,6 +21,7 @@ function RealFinal() {
   const leaderboard =
     game.gameOver?.leaderboard ?? game.room?.leaderboard ?? [];
   const me = game.room?.players.find((player) => player.id === game.playerId);
+  const hostNickname = game.room?.players.find((player) => player.isHost)?.nickname;
   const place =
     leaderboard.findIndex((entry) => entry.nickname === me?.nickname) + 1;
   const medal = place === 1 ? '🥇' : place === 2 ? '🥈' : place === 3 ? '🥉' : '🎖';
@@ -42,6 +43,7 @@ function RealFinal() {
           >
             <span className={styles.place}>{index + 1}</span>
             <span className={styles.name}>
+              {entry.nickname === hostNickname && '👑 '}
               {entry.nickname}
               {entry.nickname === me?.nickname && ' (ви)'}
             </span>

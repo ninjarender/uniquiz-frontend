@@ -43,6 +43,15 @@ export function LobbyScreen() {
     return () => clearInterval(timer);
   }, []);
 
+  // The crown moved to us (host_changed, 0063): the start button appears by
+  // itself (it renders off me.isHost) - say it out loud too.
+  const amHost = me?.isHost === true;
+  const wasHost = useRef(amHost);
+  useEffect(() => {
+    if (amHost && !wasHost.current) toast('Тепер ви хост кімнати');
+    wasHost.current = amHost;
+  }, [amHost, toast]);
+
   // Host changed the game settings (settings_updated, 0062): the meta line
   // is already live from the snapshot - add an unobtrusive toast on top.
   const settings = game.room?.settings;
