@@ -17,6 +17,7 @@ import type {
   RoomState,
   RoundResultPayload,
   ServerToClientEvents,
+  SubmitAnswerAck,
   SubmitAnswerPayload,
   WsErrorPayload,
 } from './ws-protocol';
@@ -89,6 +90,8 @@ interface GameContextValue {
   connected: boolean;
   gameStarted: GameStartedPayload | null;
   currentQuestion: ActiveQuestion | null;
+  /** Server confirmation of this round's submit_answer (task 0056). */
+  lastAnswerAck: SubmitAnswerAck | null;
   lastRoundResult: RoundResultPayload | null;
   gameOver: GameOverPayload | null;
   /** Last unconsumed protocol error (task 0070 maps codes to UI actions). */
@@ -112,6 +115,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [connected, setConnected] = useState(false);
   const [gameStarted, setGameStarted] = useState<GameStartedPayload | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<ActiveQuestion | null>(null);
+  const [lastAnswerAck, setLastAnswerAck] = useState<SubmitAnswerAck | null>(null);
   const [lastRoundResult, setLastRoundResult] = useState<RoundResultPayload | null>(null);
   const [gameOver, setGameOver] = useState<GameOverPayload | null>(null);
   const [lastError, setLastError] = useState<WsErrorPayload | null>(null);
@@ -183,6 +187,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       },
       game_started: (payload) => {
         setGameStarted(payload);
+        setLastAnswerAck(null);
         setLastRoundResult(null);
         setGameOver(null);
         setRoom((previous) =>
@@ -191,6 +196,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
       },
       question_started: (question) => {
         setCurrentQuestion(question);
+        setLastAnswerAck(null);
+      },
+      submit_answer_ack: (ack) => {
+        setLastAnswerAck(ack);
       },
       round_result: (payload) => {
         setLastRoundResult(payload);
@@ -262,6 +271,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setPlayerId(null);
     setGameStarted(null);
     setCurrentQuestion(null);
+    setLastAnswerAck(null);
     setLastRoundResult(null);
     setGameOver(null);
     setLastError(null);
@@ -294,6 +304,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       connected,
       gameStarted,
       currentQuestion,
+      lastAnswerAck,
       lastRoundResult,
       gameOver,
       lastError,
@@ -305,7 +316,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       syncTime,
       interceptErrors,
     }),
-    [room, playerId, connected, gameStarted, currentQuestion, lastRoundResult, gameOver, lastError, join, rejoin, leave, startGame, submitAnswer, syncTime, interceptErrors],
+    [room, playerId, connected, gameStarted, currentQuestion, lastAnswerAck, lastRoundResult, gameOver, lastError, join, rejoin, leave, startGame, submitAnswer, syncTime, interceptErrors],
   );
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
