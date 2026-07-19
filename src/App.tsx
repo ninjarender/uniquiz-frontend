@@ -10,6 +10,7 @@ import { DashboardScreen } from './screens/DashboardScreen';
 import { HistoryScreen } from './screens/HistoryScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { GameResume } from './screens/play/GameResume';
+import { WsErrorHandler } from './screens/play/WsErrorHandler';
 import { JoinScreen } from './screens/play/JoinScreen';
 import { LobbyScreen } from './screens/play/LobbyScreen';
 import { RoundScreen } from './screens/play/RoundScreen';
@@ -64,6 +65,9 @@ export default function App() {
         <DemoGameProvider>
         <GameProvider>
         <BrowserRouter>
+          {/* Mounted first: its interceptor registers first, so it is the
+              last checked - screens override it contextually (task 0070). */}
+          <WsErrorHandler />
           <GameResume />
           <Routes>
             <Route path="/" element={<HomeScreen />} />
