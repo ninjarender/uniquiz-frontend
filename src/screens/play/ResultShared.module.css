@@ -86,6 +86,54 @@
 }
 /* Lost connection (player_connection, 0061/0068). */
 .rowOffline { opacity: 0.5; }
+
+/* Final review (game_over, 0069): the only place the game is revealed. */
+.review {
+  position: relative;
+  display: flex;
+  width: 100%;
+  max-width: 330px;
+  max-height: 34vh;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  border-radius: 12px;
+  background: var(--color-uq-dark);
+  padding: 14px;
+}
+.reviewItem {
+  border-radius: 8px;
+  background: rgb(255 255 255 / 0.06);
+  padding: 8px 10px;
+  text-align: left;
+}
+.reviewQ { font-size: 12.5px; font-weight: 700; }
+.reviewCorrect {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #7ee2a8;
+}
+.trapBadge {
+  margin-top: 4px;
+  border-radius: 6px;
+  background: rgb(255 176 32 / 0.16);
+  padding: 4px 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #ffd489;
+}
+.reviewExplain {
+  margin-top: 4px;
+  font-size: 11px;
+  color: rgb(255 255 255 / 0.65);
+}
+
+.finalActions {
+  position: relative;
+  display: flex;
+  gap: 10px;
+}
 .place { width: 16px; font-weight: 800; color: var(--color-uq-accent); }
 .name { flex: 1; font-weight: 600; }
 .small { font-size: 10.5px; color: rgb(255 255 255 / 0.55); }

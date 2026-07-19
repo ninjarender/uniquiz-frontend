@@ -55,6 +55,22 @@ export function clearPlayerSession(roomId: string): void {
   sessionStorage.removeItem(sessionKey(roomId));
 }
 
+/*
+ * game_over survives a reload (task 0069): the room_state snapshot after the
+ * final has only the leaderboard, the full review exists solely in the
+ * game_over payload - so the provider stashes it per room.
+ */
+const gameOverKey = (roomId: string) => `uniquiz.gameOver.${roomId}`;
+export function getStoredGameOver(roomId: string): GameOverPayload | null {
+  const raw = sessionStorage.getItem(gameOverKey(roomId));
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as GameOverPayload;
+  } catch {
+    return null;
+  }
+}
+
 /** The stored session of this tab (one active room at a time), if any. */
 export function findStoredSession(): { roomId: string; session: PlayerSession } | null {
   const prefix = sessionKey('');
@@ -260,6 +276,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
       },
       game_over: (payload) => {
         setGameOver(payload);
+        if (roomIdRef.current) {
+          sessionStorage.setItem(
+            gameOverKey(roomIdRef.current),
+            JSON.stringify(payload),
+          );
+        }
         setCurrentQuestion(null);
         setRoom((previous) =>
           previous

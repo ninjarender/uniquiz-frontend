@@ -290,7 +290,36 @@ function RealRoomLobby({ roomId }: { roomId: string }) {
           )}
         </>
       ) : (
-        <div className={styles.meta}>Гру завершено</div>
+        (() => {
+          // Final podium for the hall (game_over, 0069).
+          const board =
+            game.gameOver?.leaderboard ?? live?.leaderboard ?? [];
+          const top = board[0]?.totalScore || 1;
+          return (
+            <>
+              <div className={styles.title}>Підсумки гри</div>
+              <div className={styles.podium}>
+                {board.slice(0, 4).map((entry, index) => (
+                  <div key={entry.nickname} className={styles.barWrap}>
+                    <div className={styles.barName}>{entry.nickname}</div>
+                    <div
+                      className={`${styles.bar} ${index === 0 ? styles.barLeader : ''}`}
+                      style={{
+                        height: `${Math.max((entry.totalScore / top) * 240, 40)}px`,
+                        animationDelay: `${index * 120}ms`,
+                      }}
+                    >
+                      {entry.totalScore}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className={styles.note}>
+                Розбір питань і trap — на екранах гравців
+              </div>
+            </>
+          );
+        })()
       )}
 
       {editing && waiting && settings && (
