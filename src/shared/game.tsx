@@ -52,6 +52,19 @@ export function clearPlayerSession(roomId: string): void {
   sessionStorage.removeItem(sessionKey(roomId));
 }
 
+/** The stored session of this tab (one active room at a time), if any. */
+export function findStoredSession(): { roomId: string; session: PlayerSession } | null {
+  const prefix = sessionKey('');
+  for (let i = 0; i < sessionStorage.length; i += 1) {
+    const key = sessionStorage.key(i);
+    if (!key?.startsWith(prefix)) continue;
+    const roomId = key.slice(prefix.length);
+    const session = getPlayerSession(roomId);
+    if (session) return { roomId, session };
+  }
+  return null;
+}
+
 /**
  * error handling contract (mechanism here, full code->UI map in task 0070):
  * the screen that initiated an event may register an interceptor and return
@@ -95,6 +108,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [gameOver, setGameOver] = useState<GameOverPayload | null>(null);
   const [lastError, setLastError] = useState<WsErrorPayload | null>(null);
   const interceptors = useRef<WsErrorInterceptor[]>([]);
+  /** Room this tab is in - for the automatic rejoin on reconnect (0053). */
+  const roomIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const socket = getSocket();
@@ -103,11 +118,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const handlers: { [E in keyof ServerToClientEvents]?: ServerToClientEvents[E] } = {
       join_ack: ({ playerId: id, resumeToken, room: snapshot }) => {
         savePlayerSession(snapshot.roomId, { playerId: id, resumeToken });
+        roomIdRef.current = snapshot.roomId;
         setPlayerId(id);
         setRoom(snapshot);
         setCurrentQuestion(snapshot.currentQuestion ?? null);
       },
       room_state: (snapshot) => {
+        roomIdRef.current = snapshot.roomId;
         setRoom(snapshot);
         setCurrentQuestion(snapshot.currentQuestion ?? null);
         if (snapshot.status === 'waiting') {
@@ -191,7 +208,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
       },
     };
 
-    const onConnect = () => setConnected(true);
+    const onConnect = () => {
+      setConnected(true);
+      // Transport reconnected mid-game -> restore membership without the
+      // player doing anything (task 0053). First connect has no room yet.
+      const roomId = roomIdRef.current;
+      const session = roomId ? getPlayerSession(roomId) : null;
+      if (roomId && session) socket.emit('rejoin_room', { roomId, ...session });
+    };
     const onDisconnect = () => setConnected(false);
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
@@ -215,6 +239,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const rejoin = useCallback((roomId: string): boolean => {
     const session = getPlayerSession(roomId);
     if (!session) return false;
+    roomIdRef.current = roomId;
     setPlayerId(session.playerId);
     connectSocket().emit('rejoin_room', { roomId, ...session });
     return true;
@@ -224,6 +249,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const roomId = room?.roomId;
     getSocket().emit('leave_room');
     if (roomId) clearPlayerSession(roomId);
+    roomIdRef.current = null;
     setRoom(null);
     setPlayerId(null);
     setGameStarted(null);

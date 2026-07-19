@@ -9,6 +9,7 @@ import { BankScreen } from './screens/BankScreen';
 import { DashboardScreen } from './screens/DashboardScreen';
 import { HistoryScreen } from './screens/HistoryScreen';
 import { HomeScreen } from './screens/HomeScreen';
+import { GameResume } from './screens/play/GameResume';
 import { JoinScreen } from './screens/play/JoinScreen';
 import { LobbyScreen } from './screens/play/LobbyScreen';
 import { RoundScreen } from './screens/play/RoundScreen';
@@ -63,6 +64,7 @@ export default function App() {
         <DemoGameProvider>
         <GameProvider>
         <BrowserRouter>
+          <GameResume />
           <Routes>
             <Route path="/" element={<HomeScreen />} />
             <Route path="/play" element={<JoinScreen />} />
