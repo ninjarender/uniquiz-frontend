@@ -133,6 +133,14 @@ export function DashboardScreen() {
               <b className="block text-[18px]">{banks ? totalQuestions : '—'}</b>
               <span className="text-[10.5px] text-white/70">запитань</span>
             </div>
+            <div className="rounded-xl bg-white/12 px-4 py-2.5 text-center" title="Демо-дані до ігрових тасок 0018+">
+              <b className="block text-[18px]">3</b>
+              <span className="text-[10.5px] text-white/70">сесії (демо)</span>
+            </div>
+            <div className="rounded-xl bg-white/12 px-4 py-2.5 text-center" title="Демо-дані до ігрових тасок 0018+">
+              <b className="block text-[18px]">68 %</b>
+              <span className="text-[10.5px] text-white/70">успішність (демо)</span>
+            </div>
           </div>
         </section>
 
@@ -228,6 +236,75 @@ export function DashboardScreen() {
               </article>
             );
           })}
+        </div>
+      </div>
+
+      {/* bottom panels (prototype T1); session data is demo until 0018+ */}
+      <div className="mx-auto max-w-[980px] px-7 pb-24">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <section className="rounded-2xl bg-white p-4 shadow-[0_4px_18px_rgb(70_23_143/0.10)]">
+            <h4 className="mb-3 flex items-center justify-between text-[13.5px] font-extrabold text-[#2d1b52]">
+              📊 Остання сесія · 27 учасників
+              <span className="rounded-full bg-[#f0ecfa] px-2 py-0.5 text-[9px] font-bold text-[#6a4fc0] uppercase">демо</span>
+            </h4>
+            {[
+              { name: 'SQL-запити', value: 81, color: 'bg-uq-green' },
+              { name: 'Транзакції', value: 63, color: 'bg-uq-yellow' },
+              { name: 'Нормалізація', value: 44, color: 'bg-uq-red' },
+            ].map((row) => (
+              <div key={row.name} className="mb-2 flex items-center gap-2 text-[11.5px] text-[#6a5d8f]">
+                <span className="w-[92px] shrink-0 truncate">{row.name}</span>
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#eee7fb]">
+                  <div className={`h-full rounded-full ${row.color}`} style={{ width: `${row.value}%` }} />
+                </div>
+                <b className="w-10 text-right text-[#2d1b52]">{row.value}%{row.value < 50 ? ' ⚠' : ''}</b>
+              </div>
+            ))}
+          </section>
+
+          <section className="rounded-2xl bg-white p-4 shadow-[0_4px_18px_rgb(70_23_143/0.10)]">
+            <h4 className="mb-3 text-[13.5px] font-extrabold text-[#2d1b52]">⚡ Швидкі дії</h4>
+            <button
+              type="button"
+              onClick={() => navigate('/live')}
+              className="mb-2 flex w-full cursor-pointer items-center gap-2 rounded-lg border-none bg-[#f4f0fc] px-3 py-2.5 text-left text-[12.5px] font-semibold text-[#2d1b52] transition-transform hover:translate-x-0.5 hover:bg-[#ede7fb]"
+            >
+              ▶ Запустити live-сесію (демо)
+            </button>
+            <button
+              type="button"
+              onClick={() => toast('Генерація ШІ підключиться з бекенд-таскою 0013')}
+              className="mb-2 flex w-full cursor-pointer items-center gap-2 rounded-lg border-none bg-[#f4f0fc] px-3 py-2.5 text-left text-[12.5px] font-semibold text-[#2d1b52] transition-transform hover:translate-x-0.5 hover:bg-[#ede7fb]"
+            >
+              ✨ Догенерувати відповіді ШІ
+            </button>
+            <button
+              type="button"
+              onClick={() => toast('Апеляції — академічна фаза (post-MVP)')}
+              className="flex w-full cursor-pointer items-center gap-2 rounded-lg border-none bg-[#f4f0fc] px-3 py-2.5 text-left text-[12.5px] font-semibold text-[#2d1b52] transition-transform hover:translate-x-0.5 hover:bg-[#ede7fb]"
+            >
+              ⚖️ Розглянути апеляції
+              <span className="ml-auto rounded-lg bg-uq-red px-1.5 text-[9px] font-bold text-white">2</span>
+            </button>
+          </section>
+
+          <section className="rounded-2xl bg-white p-4 shadow-[0_4px_18px_rgb(70_23_143/0.10)]">
+            <h4 className="mb-3 flex items-center justify-between text-[13.5px] font-extrabold text-[#2d1b52]">
+              🛡 Захист — активний
+              <span className="rounded-full bg-[#f0ecfa] px-2 py-0.5 text-[9px] font-bold text-[#6a4fc0] uppercase">демо</span>
+            </h4>
+            {[
+              ['👁 Спойлер-маска', 'post-MVP'],
+              ['🎲 Індивідуальні варіанти', 'post-MVP'],
+              ['⏱ Таймер раунду', 'MVP'],
+              ['📓 Журнал спойлерів', 'post-MVP'],
+            ].map(([name]) => (
+              <div key={name} className="mb-1.5 flex items-center justify-between text-[12px] text-[#6a5d8f]">
+                <span>{name}</span>
+                <b className="rounded-full bg-uq-green/15 px-2 py-0.5 text-[10px] text-[#26890c]">увімк.</b>
+              </div>
+            ))}
+          </section>
         </div>
       </div>
 

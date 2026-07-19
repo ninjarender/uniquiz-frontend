@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../shared/auth';
 import { FloatingShapes, useToast } from '../shared/ui';
+import { PlayFab } from './PlayFab';
 import type { ShapeSpec } from '../shared/ui';
 
 const SIDEBAR_SHAPES: ShapeSpec[] = [
@@ -89,6 +90,7 @@ export function TeacherLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <main className="min-w-0 flex-1 overflow-auto">{children}</main>
+      <PlayFab />
     </div>
   );
 }
