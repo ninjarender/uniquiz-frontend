@@ -84,6 +84,8 @@
   background: var(--color-uq-purple);
   outline: 2px solid var(--color-uq-accent);
 }
+/* Lost connection (player_connection, 0061/0068). */
+.rowOffline { opacity: 0.5; }
 .place { width: 16px; font-weight: 800; color: var(--color-uq-accent); }
 .name { flex: 1; font-weight: 600; }
 .small { font-size: 10.5px; color: rgb(255 255 255 / 0.55); }

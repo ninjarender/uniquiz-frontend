@@ -181,8 +181,47 @@ function RealRoomLobby({ roomId }: { roomId: string }) {
   );
 
   // game_started flips the snapshot to in_game (task 0066); the hall sees
-  // the same question the players do (task 0067).
+  // the same question the players do (task 0067) and the shared leaderboard
+  // between rounds (round_result, task 0068).
   if (status === 'in_game') {
+    const roundOver =
+      game.lastRoundResult !== null &&
+      game.lastRoundResult.questionIndex === game.currentQuestion?.index;
+    if (roundOver && game.lastRoundResult) {
+      return (
+        <>
+          <div className={styles.joinLine}>
+            Лідерборд після питання {game.lastRoundResult.questionIndex + 1}
+          </div>
+          <div className={styles.hallBoard}>
+            {game.lastRoundResult.leaderboard.map((entry, index) => {
+              const player = live?.players.find((p) => p.nickname === entry.nickname);
+              return (
+                <div
+                  key={entry.nickname}
+                  className={`${styles.hallRow} ${
+                    player?.connected === false ? styles.playerOffline : ''
+                  }`}
+                >
+                  <b className={styles.hallPlace}>{index + 1}</b>
+                  <span className={styles.hallName}>
+                    {player?.isHost && '👑 '}
+                    {entry.nickname}
+                    {player?.connected === false && ' 📴'}
+                  </span>
+                  <b>{entry.totalScore}</b>
+                </div>
+              );
+            })}
+          </div>
+          <div className={styles.note}>
+            {game.lastRoundResult.isLast
+              ? 'Далі — фінальні підсумки…'
+              : 'Наступне питання ось-ось…'}
+          </div>
+        </>
+      );
+    }
     if (game.currentQuestion) {
       return (
         <HallQuestion

@@ -54,6 +54,7 @@ const REAL_TICK_MS = 100;
 
 function RealRound({ question }: { question: ActiveQuestion }) {
   const game = useGame();
+  const navigate = useNavigate();
   const [selected, setSelected] = useState<number | null>(null);
   const [sent, setSent] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
@@ -109,6 +110,13 @@ function RealRound({ question }: { question: ActiveQuestion }) {
       return true;
     });
   }, [game.interceptErrors]);
+
+  // This round's result arrived -> the result screen takes over (task 0068).
+  useEffect(() => {
+    if (game.lastRoundResult?.questionIndex === question.index) {
+      navigate('/play/result', { replace: true });
+    }
+  }, [game.lastRoundResult, question.index, navigate]);
 
   const questionCount =
     game.gameStarted?.questionCount ?? game.room?.settings.questionCount ?? 0;
