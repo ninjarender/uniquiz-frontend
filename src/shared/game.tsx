@@ -95,6 +95,8 @@ interface GameContextValue {
   lastAnswerAck: SubmitAnswerAck | null;
   lastRoundResult: RoundResultPayload | null;
   gameOver: GameOverPayload | null;
+  /** Local deadline (ms) of the lobby timeout warning, null - no warning (0064). */
+  closingAt: number | null;
   /** Last unconsumed protocol error (task 0070 maps codes to UI actions). */
   lastError: WsErrorPayload | null;
 
@@ -119,6 +121,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [lastAnswerAck, setLastAnswerAck] = useState<SubmitAnswerAck | null>(null);
   const [lastRoundResult, setLastRoundResult] = useState<RoundResultPayload | null>(null);
   const [gameOver, setGameOver] = useState<GameOverPayload | null>(null);
+  const [closingAt, setClosingAt] = useState<number | null>(null);
   const [lastError, setLastError] = useState<WsErrorPayload | null>(null);
   const interceptors = useRef<WsErrorInterceptor[]>([]);
   /** Room this tab is in - for the automatic rejoin on reconnect (0053). */
@@ -152,6 +155,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setLastAnswerAck(null);
         setLastRoundResult(null);
         setGameOver(null);
+      } else {
+        // The lobby wait timer only runs in waiting.
+        setClosingAt(null);
       }
     };
 
@@ -201,11 +207,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
             : previous,
         );
       },
+      room_closing_soon: ({ closesInSeconds }) => {
+        setClosingAt(Date.now() + closesInSeconds * 1000);
+      },
       game_started: (payload) => {
         setGameStarted(payload);
         setLastAnswerAck(null);
         setLastRoundResult(null);
         setGameOver(null);
+        // The server reset the lobby wait timer - drop the warning banner.
+        setClosingAt(null);
         setRoom((previous) =>
           previous ? { ...previous, status: 'in_game', players: payload.players } : previous,
         );
@@ -295,6 +306,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setLastAnswerAck(null);
     setLastRoundResult(null);
     setGameOver(null);
+    setClosingAt(null);
     setLastError(null);
     closeSocket();
   }, [room?.roomId]);
@@ -328,6 +340,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       lastAnswerAck,
       lastRoundResult,
       gameOver,
+      closingAt,
       lastError,
       join,
       rejoin,
@@ -337,7 +350,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       syncTime,
       interceptErrors,
     }),
-    [room, playerId, connected, gameStarted, currentQuestion, lastAnswerAck, lastRoundResult, gameOver, lastError, join, rejoin, leave, startGame, submitAnswer, syncTime, interceptErrors],
+    [room, playerId, connected, gameStarted, currentQuestion, lastAnswerAck, lastRoundResult, gameOver, closingAt, lastError, join, rejoin, leave, startGame, submitAnswer, syncTime, interceptErrors],
   );
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

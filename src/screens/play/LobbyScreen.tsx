@@ -5,6 +5,7 @@ import { useDemoGame } from '../../demo/engine';
 import { START_ERROR_TEXT, clearPlayerSession, useGame } from '../../shared/game';
 import { Button } from '../../shared/controls';
 import { FloatingShapes, HOME_SHAPES, Logo, useToast } from '../../shared/ui';
+import { ClosingBanner } from './ClosingBanner';
 import styles from './LobbyScreen.module.css';
 
 /**
@@ -112,6 +113,8 @@ export function LobbyScreen() {
       </div>
 
       <div className={styles.meta}>{meta}</div>
+
+      {real && <ClosingBanner />}
 
       <div className={styles.players}>
         {game.room

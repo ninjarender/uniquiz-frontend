@@ -6,6 +6,7 @@ import type { RoomPublicInfo } from '../../shared/api';
 import { START_ERROR_TEXT, useGame } from '../../shared/game';
 import { Button } from '../../shared/controls';
 import { FloatingShapes, Logo, useToast } from '../../shared/ui';
+import { ClosingBanner } from './ClosingBanner';
 import { RoomSettingsModal } from './RoomSettingsModal';
 import styles from './ProjectorScreen.module.css';
 import type { ShapeSpec } from '../../shared/ui';
@@ -106,6 +107,8 @@ function RealRoomLobby({ roomId }: { roomId: string }) {
         {settings?.questionCount} запитань ·{' '}
         {settings?.timePerQuestionSeconds} с на запитання
       </div>
+
+      <ClosingBanner />
 
       {live && (
         <div className={styles.players}>
