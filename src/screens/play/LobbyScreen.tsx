@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DEMO_BANK_NAME, QUIZ_LEN } from '../../demo/data';
 import { useDemoGame } from '../../demo/engine';
@@ -42,6 +42,21 @@ export function LobbyScreen() {
     );
     return () => clearInterval(timer);
   }, []);
+
+  // Host changed the game settings (settings_updated, 0062): the meta line
+  // is already live from the snapshot - add an unobtrusive toast on top.
+  const settings = game.room?.settings;
+  const prevSettings = useRef(settings);
+  useEffect(() => {
+    const previous = prevSettings.current;
+    prevSettings.current = settings;
+    if (!settings || !previous) return;
+    const changed =
+      previous.mode !== settings.mode ||
+      previous.questionCount !== settings.questionCount ||
+      previous.timePerQuestionSeconds !== settings.timePerQuestionSeconds;
+    if (changed) toast('Хост оновив налаштування гри');
+  }, [settings, toast]);
 
   // Kicked between events (e.g. the room died) -> silently back to joining;
   // start_game rejections (host path, 0055) -> a human toast.
