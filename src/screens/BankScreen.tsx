@@ -5,6 +5,8 @@ import { ApiError, BanksApi, ImagesApi, QuestionsApi } from '../shared/api';
 import type { AnswerSetStatus, BankDetailed, Question } from '../shared/api';
 import { Button, ErrorBox, TextArea, TextField } from '../shared/controls';
 import { Modal, useToast } from '../shared/ui';
+import { makeDemoSet, ModerationModal } from './bank/DemoModeration';
+import type { DemoSet } from './bank/DemoModeration';
 import { TeacherLayout } from './TeacherLayout';
 
 const STATUS_LABELS: Record<AnswerSetStatus, string> = {
@@ -57,6 +59,45 @@ export function BankScreen() {
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  // Client-only demo answer sets (until backend generation, tasks 0013-0017).
+  const [demoSets, setDemoSets] = useState<Map<string, DemoSet>>(new Map());
+  const [generating, setGenerating] = useState(false);
+  const [moderating, setModerating] = useState<Question | null>(null);
+
+  const effectiveSet = (question: Question): DemoSet | undefined =>
+    question.answerSet
+      ? undefined // real sets will get their own moderation with tasks 0015+
+      : demoSets.get(question.id);
+
+  const generateDemo = () => {
+    if (!bank || bank.questions.length === 0) {
+      toast('Спершу додайте запитання');
+      return;
+    }
+    setGenerating(true);
+    const pending = bank.questions.filter(
+      (question) => !question.answerSet && !demoSets.has(question.id),
+    );
+    if (pending.length === 0) {
+      toast('Усі запитання вже мають комплекти');
+      setGenerating(false);
+      return;
+    }
+    // Staggered "generation" for the demo effect.
+    pending.forEach((question, index) => {
+      setTimeout(() => {
+        setDemoSets((previous) => {
+          const next = new Map(previous);
+          next.set(question.id, makeDemoSet(question));
+          return next;
+        });
+        if (index === pending.length - 1) {
+          setGenerating(false);
+          toast('Готово! Демо-комплекти на модерації — клікніть рядок');
+        }
+      }, 700 + index * 450);
+    });
+  };
 
   const reload = useCallback(() => {
     if (!bankId) return;
@@ -183,15 +224,32 @@ export function BankScreen() {
                 </Button>
                 <Button
                   variant="purple"
-                  className="opacity-70"
-                  title="Бекенд-таска 0013 ще в роботі"
-                  onClick={() => toast('Генерація ШІ підключиться з бекенд-таскою 0013')}
+                  className="bg-linear-135 from-[#7b2ff7] to-[#4a90d9]"
+                  disabled={generating}
+                  title="Демо-генерація · реальна прийде з бекенд-таскою 0013"
+                  onClick={generateDemo}
                 >
-                  ✨ Згенерувати відповіді (ШІ)
+                  {generating ? '⏳ Генерується…' : '✨ Згенерувати відповіді (ШІ)'}
+                </Button>
+                <Button
+                  variant="purple"
+                  className="opacity-70"
+                  onClick={() => toast('У повній версії: імпорт запитань із DOCX/TXT')}
+                >
+                  📄 Імпорт з DOCX
+                </Button>
+                <Button onClick={() => navigate('/live')}>
+                  ▶ Запустити live-сесію (демо)
                 </Button>
               </div>
             </div>
 
+            {demoSets.size > 0 && (
+              <div className="mt-3 rounded-xl bg-[#fff7dc] px-4 py-2.5 text-[12px] text-[#6b5a00]">
+                ⚠ Демо-комплекти живуть лише в цій вкладці і не збережені в базі —
+                реальна генерація підключиться з бекенд-таскою 0013.
+              </div>
+            )}
             {bank.questions.length === 0 ? (
               <div className="mt-8 rounded-2xl border-2 border-dashed border-[#c9bfe4] p-10 text-center text-[#6a5d8f]">
                 <div className="text-[34px]">❓</div>
@@ -219,7 +277,13 @@ export function BankScreen() {
                   </thead>
                   <tbody>
                     {bank.questions.map((question, index) => (
-                      <tr key={question.id} className="border-t border-[#f0ebfa] align-middle hover:bg-[#faf8ff]">
+                      <tr
+                        key={question.id}
+                        onClick={() => {
+                          if (effectiveSet(question)) setModerating(question);
+                        }}
+                        className={`border-t border-[#f0ebfa] align-middle hover:bg-[#faf8ff] ${effectiveSet(question) ? 'cursor-pointer' : ''}`}
+                      >
                         <td className="px-4 py-2.5 font-bold text-[#8a7fa8]">{index + 1}</td>
                         <td className="px-2 py-2.5 text-[#2d1b52]">{question.text}</td>
                         <td className="px-2 py-2.5">
@@ -236,13 +300,24 @@ export function BankScreen() {
                         <td className="truncate px-2 py-2.5 text-[#6a5d8f]">
                           {question.referenceAnswer ?? <span className="text-[#c2b8d9]">—</span>}
                         </td>
-                        <td className="px-2 py-2.5"><StatusChip question={question} /></td>
+                        <td className="px-2 py-2.5">
+                          <StatusChip
+                            question={
+                              effectiveSet(question)
+                                ? { ...question, answerSet: effectiveSet(question) }
+                                : question
+                            }
+                          />
+                          {effectiveSet(question) && (
+                            <span className="ml-1 align-middle text-[9px] font-bold text-[#a08fd0] uppercase">демо</span>
+                          )}
+                        </td>
                         <td className="px-2 py-2.5">
                           <div className="flex gap-1">
                             <button
                               type="button"
                               title="Редагувати"
-                              onClick={() => openEdit(question)}
+                              onClick={(event) => { event.stopPropagation(); openEdit(question); }}
                               className="cursor-pointer rounded-md border-none bg-transparent p-1 opacity-60 hover:bg-[#f0ecfa] hover:opacity-100"
                             >
                               ✏️
@@ -250,7 +325,7 @@ export function BankScreen() {
                             <button
                               type="button"
                               title="Видалити"
-                              onClick={() => setDeleting(question)}
+                              onClick={(event) => { event.stopPropagation(); setDeleting(question); }}
                               className="cursor-pointer rounded-md border-none bg-transparent p-1 opacity-60 hover:bg-[#fdecef] hover:opacity-100"
                             >
                               🗑️
@@ -331,6 +406,21 @@ export function BankScreen() {
             </Button>
           </form>
         </Modal>
+      )}
+
+      {moderating && effectiveSet(moderating) && (
+        <ModerationModal
+          question={moderating}
+          set={effectiveSet(moderating)!}
+          onClose={() => setModerating(null)}
+          onChange={(next) =>
+            setDemoSets((previous) => {
+              const map = new Map(previous);
+              map.set(moderating.id, next);
+              return map;
+            })
+          }
+        />
       )}
 
       {deleting && (
