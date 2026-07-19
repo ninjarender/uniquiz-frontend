@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import type { FormEvent } from 'react';
 import { ApiError } from '../shared/api';
 import { useAuth } from '../shared/auth';
+import { Button, ErrorBox, TextField } from '../shared/controls';
 import { FloatingShapes, HOME_SHAPES, Logo, useToast } from '../shared/ui';
 
 type Tab = 'login' | 'register';
@@ -74,12 +75,12 @@ export function HomeScreen() {
         вміст під спойлерами
       </div>
 
-      <form className="uq-card w-[320px]" onSubmit={(event) => void submit(event)}>
+      <form className="relative flex w-[320px] flex-col gap-2.5 rounded-2xl bg-uq-dark p-5" onSubmit={(event) => void submit(event)}>
         {/* tabs with a sliding indicator (design: auth-ind spring slide) */}
         <div className="relative grid grid-cols-2 rounded-[10px] bg-white/10 p-1 text-[13px] font-bold">
           <div
             aria-hidden
-            className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-[var(--purple)] transition-transform duration-300 [transition-timing-function:cubic-bezier(.34,1.56,.64,1)]"
+            className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-uq-purple transition-transform duration-300 [transition-timing-function:cubic-bezier(.34,1.56,.64,1)]"
             style={{ transform: tab === 'login' ? 'translateX(0)' : 'translateX(calc(100% + 0px))', left: 4 }}
           />
           <button
@@ -98,9 +99,8 @@ export function HomeScreen() {
           </button>
         </div>
 
-        <input
+        <TextField
           ref={emailRef}
-          className="uq-field"
           type="email"
           required
           placeholder="Email"
@@ -108,8 +108,7 @@ export function HomeScreen() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
         />
-        <input
-          className="uq-field"
+        <TextField
           type="password"
           required
           minLength={8}
@@ -119,11 +118,11 @@ export function HomeScreen() {
           onChange={(event) => setPassword(event.target.value)}
         />
 
-        {error && <div className="uq-error">{error}</div>}
+        {error && <ErrorBox>{error}</ErrorBox>}
 
-        <button className="btn-green" type="submit" disabled={busy}>
+        <Button type="submit" disabled={busy}>
           {busy ? '…' : tab === 'login' ? 'Увійти' : 'Створити акаунт'}
-        </button>
+        </Button>
         <div className="text-center text-[11px] text-[#b9a8e6]">
           В акаунті — ваші тести й банки запитань
         </div>
@@ -135,9 +134,9 @@ export function HomeScreen() {
       <button
         type="button"
         onClick={() => navigate('/play')}
-        className="relative cursor-pointer rounded-full border-none bg-[linear-gradient(135deg,#2d0e5e,#5b1fb0)] px-6 py-3 text-[14px] font-bold text-white shadow-[0_3px_0_#1b0741] transition-transform hover:scale-[1.03] active:translate-y-[2px]"
+        className="relative cursor-pointer rounded-full border-none bg-linear-135 from-uq-dark to-[#5b1fb0] px-6 py-3 text-[14px] font-bold text-white shadow-[0_3px_0_#1b0741] transition-transform hover:scale-[1.03] active:translate-y-[2px]"
       >
-        <span className="mr-2 text-[var(--accent)]">➜</span> Приєднатися до гри
+        <span className="mr-2 text-uq-accent">➜</span> Приєднатися до гри
       </button>
     </div>
   );

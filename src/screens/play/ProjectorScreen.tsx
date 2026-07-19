@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BOT_NAMES, DEMO_BANK_NAME } from '../../demo/data';
+import { Button } from '../../shared/controls';
 import { FloatingShapes, Logo } from '../../shared/ui';
 import type { ShapeSpec } from '../../shared/ui';
 
@@ -48,7 +49,7 @@ export function ProjectorScreen() {
     <div className="grad-bg relative flex h-full flex-col items-center justify-center gap-5 overflow-hidden px-6 text-center">
       <FloatingShapes shapes={PROJECTOR_SHAPES} />
       <div className="absolute top-4 left-5"><Logo size={22} /></div>
-      <div className="absolute top-4 right-5 rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold tracking-wide text-[var(--accent)] uppercase">
+      <div className="absolute top-4 right-5 rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold tracking-wide text-uq-accent uppercase">
         Демо · проєктор
       </div>
 
@@ -58,7 +59,7 @@ export function ProjectorScreen() {
             Приєднуйтесь на <b className="text-white">uniquiz.university.ua</b> · код кімнати:
           </div>
           <div
-            className="relative text-[72px] font-extrabold tracking-[10px] text-[var(--accent)]"
+            className="relative text-[72px] font-extrabold tracking-[10px] text-uq-accent"
             style={{ textShadow: '0 0 34px rgba(255,208,47,.35)' }}
           >
             {code}
@@ -70,16 +71,16 @@ export function ProjectorScreen() {
             {players.map((name) => (
               <span
                 key={name}
-                className="rounded-full bg-white/14 px-5 py-2.5 text-[15px] font-bold"
-                style={{ animation: 'cardIn .35s ease both' }}
+                className="animate-card-in rounded-full bg-white/14 px-5 py-2.5 text-[15px] font-bold"
+                
               >
                 {name}
               </span>
             ))}
           </div>
-          <button type="button" className="btn-green relative mt-2" onClick={() => setPhase('results')}>
+          <Button className="relative mt-2" onClick={() => setPhase('results')}>
             Завершити демо-сесію → підсумки
-          </button>
+          </Button>
         </>
       ) : (
         <>
@@ -89,14 +90,14 @@ export function ProjectorScreen() {
               <div key={row.name} className="flex flex-col items-center gap-1.5">
                 <div className="text-[13px] font-bold">{row.name}</div>
                 <div
-                  className="flex w-[86px] items-start justify-center rounded-t-xl pt-2 text-[12px] font-extrabold text-[#2a1259]"
+                  className="animate-card-in flex w-[86px] items-start justify-center rounded-t-xl pt-2 text-[12px] font-extrabold text-[#2a1259]"
                   style={{
                     height: `${(row.score / top) * 240}px`,
                     background: index === 0
                       ? 'linear-gradient(180deg,#ffd02f,#e8b400)'
                       : 'linear-gradient(180deg,#a98ff2,#7b5fd0)',
                     boxShadow: index === 0 ? '0 0 26px rgba(255,208,47,.35)' : undefined,
-                    animation: 'cardIn .5s ease both',
+                    
                     animationDelay: `${index * 120}ms`,
                   }}
                 >
@@ -109,9 +110,9 @@ export function ProjectorScreen() {
             В аналітиці згодом: успішність за темами, аномальні запитання,
             підозрілі патерни відкриття спойлерів
           </div>
-          <button type="button" className="btn-purple relative" onClick={() => navigate('/teacher')}>
+          <Button variant="purple" className="relative" onClick={() => navigate('/teacher')}>
             ← до кабінету
-          </button>
+          </Button>
         </>
       )}
     </div>

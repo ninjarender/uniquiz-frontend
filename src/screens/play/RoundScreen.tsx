@@ -2,7 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QUIZ_LEN, ROUND_TIME_S } from '../../demo/data';
 import { useDemoGame } from '../../demo/engine';
+import { Button } from '../../shared/controls';
 import { FloatingShapes } from '../../shared/ui';
+import type { CSSVars } from '../../shared/ui';
+import styles from './RoundScreen.module.css';
 import type { ShapeSpec } from '../../shared/ui';
 
 const ROUND_SHAPES: ShapeSpec[] = [
@@ -10,7 +13,7 @@ const ROUND_SHAPES: ShapeSpec[] = [
   { glyph: '◆', size: 48, top: '60%', right: '-12px' },
 ];
 
-const TILE_CLASSES = ['a-red', 'a-blue', 'a-yellow', 'a-green'];
+const TILE_COLORS = ['bg-uq-red', 'bg-uq-blue', 'bg-uq-yellow', 'bg-uq-green'];
 const TILE_ICONS = ['▲', '◆', '●', '■'];
 const TICK_MS = 100;
 
@@ -95,7 +98,7 @@ export function RoundScreen() {
         <div className="rounded-full bg-white/12 px-3.5 py-1.5 text-[12.5px] font-bold">
           {game.currentIndex + 1} / {QUIZ_LEN}
         </div>
-        <div className="timer-ring" style={{ '--left': leftPercent } as React.CSSProperties}>
+        <div className={styles.ring} style={{ '--left': leftPercent } as CSSVars}>
           {leftSeconds}
         </div>
         <div className="rounded-full bg-white/12 px-3.5 py-1.5 text-[12.5px] font-bold">
@@ -104,8 +107,10 @@ export function RoundScreen() {
       </div>
 
       {/* question card with a spoiler mask */}
-      <div className="spoiler relative mx-4 mt-4 rounded-2xl bg-[var(--dark)] p-5 text-center text-[15px] leading-snug font-bold select-none">
-        <div className="sp">{question.text}</div>
+      <div className="group relative mx-4 mt-4 rounded-2xl bg-uq-dark p-5 text-center text-[15px] leading-snug font-bold select-none">
+        <div className="blur-[7px] transition-[filter] duration-100 group-hover:blur-none">
+          {question.text}
+        </div>
       </div>
 
       {/* answers */}
@@ -116,11 +121,23 @@ export function RoundScreen() {
             type="button"
             disabled={confirmed}
             onClick={() => setSelected((previous) => (previous === index ? null : index))}
-            className={`answer-tile spoiler ${TILE_CLASSES[index]} ${selected === index ? 'selected' : ''} ${confirmed ? 'locked' : ''}`}
+            className={`group flex cursor-pointer items-center gap-2.5 rounded-xl border-none px-3 py-[13px] text-left text-[13.5px] font-semibold text-white outline-3 transition-[transform,outline-color,filter] duration-100 select-none ${TILE_COLORS[index]} ${
+              selected === index
+                ? 'scale-[1.02] outline-uq-accent'
+                : 'outline-transparent'
+            } ${
+              confirmed
+                ? selected === index
+                  ? 'cursor-default'
+                  : 'cursor-default brightness-75 saturate-[0.72]'
+                : 'hover:-translate-y-px hover:brightness-105'
+            }`}
           >
             <span className="text-[16px]">{TILE_ICONS[index]}</span>
-            <span className="sp">{option}</span>
-            {selected === index && <span className="ml-auto text-[var(--accent)]">✔</span>}
+            <span className="blur-[7px] transition-[filter] duration-100 group-hover:blur-none">
+              {option}
+            </span>
+            {selected === index && <span className="ml-auto text-uq-accent">✔</span>}
           </button>
         ))}
       </div>
@@ -129,13 +146,9 @@ export function RoundScreen() {
       <div className="relative px-4 pb-5">
         {!confirmed ? (
           <>
-            <button
-              type="button"
-              className="btn-green w-full"
-              onClick={() => setConfirmed(true)}
-            >
+            <Button className="w-full" onClick={() => setConfirmed(true)}>
               {selected === null ? 'Підтвердити без відповіді' : 'Підтвердити відповідь'}
-            </button>
+            </Button>
             <div className="mt-2 text-center text-[10.5px] text-white/50">
               Вибір можна змінювати до підтвердження · відкрито може бути лише
               один елемент · копіювання вимкнено

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QUIZ_LEN } from '../../demo/data';
 import { useDemoGame } from '../../demo/engine';
+import { Button } from '../../shared/controls';
 import { FloatingShapes, HOME_SHAPES, Logo, useToast } from '../../shared/ui';
 
 /** Final: leaderboard, personal stats, play again / share (features.md). */
@@ -49,7 +50,7 @@ export function FinalScreen() {
       <FloatingShapes shapes={HOME_SHAPES} />
       <Logo size={24} />
 
-      <div className="relative text-[46px]" style={{ animation: 'pulse 1.8s ease-in-out infinite' }}>{medal}</div>
+      <div className="animate-pulse-big relative text-[46px]">{medal}</div>
       <div className="relative text-[21px] font-extrabold">
         {place} місце · {Math.round(you.score)} балів
       </div>
@@ -65,16 +66,16 @@ export function FinalScreen() {
         </div>
       </div>
 
-      <div className="relative w-full max-w-[330px] rounded-xl bg-[var(--dark)] p-3.5">
+      <div className="relative w-full max-w-[330px] rounded-xl bg-uq-dark p-3.5">
         <div className="mb-2 text-center text-[10px] tracking-wide text-[#c9b8ec] uppercase">
           Фінальний лідерборд
         </div>
         {leaderboard.map((player, index) => (
           <div
             key={player.name}
-            className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12.5px] ${player.isYou ? 'bg-[var(--purple)] outline-2 outline-[var(--accent)]' : ''}`}
+            className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12.5px] ${player.isYou ? 'bg-uq-purple outline-2 outline-uq-accent' : ''}`}
           >
-            <b className="w-4 text-[var(--accent)]">{index + 1}</b>
+            <b className="w-4 text-uq-accent">{index + 1}</b>
             <span className="flex-1 font-semibold">
               {player.name}
               {player.isYou && ' (ви)'}
@@ -86,12 +87,10 @@ export function FinalScreen() {
       </div>
 
       <div className="relative flex gap-2.5">
-        <button type="button" className="btn-green" onClick={playAgain}>
-          🔁 Зіграти ще раз
-        </button>
-        <button type="button" className="btn-purple" onClick={() => void share()}>
+        <Button onClick={playAgain}>🔁 Зіграти ще раз</Button>
+        <Button variant="purple" onClick={() => void share()}>
           📤 Поділитися
-        </button>
+        </Button>
       </div>
       <button
         type="button"

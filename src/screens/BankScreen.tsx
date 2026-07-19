@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import type { FormEvent } from 'react';
 import { ApiError, BanksApi, ImagesApi, QuestionsApi } from '../shared/api';
 import type { AnswerSetStatus, BankDetailed, Question } from '../shared/api';
+import { Button, ErrorBox, TextArea, TextField } from '../shared/controls';
 import { Modal, useToast } from '../shared/ui';
 import { TeacherLayout } from './TeacherLayout';
 
@@ -15,10 +16,25 @@ const STATUS_LABELS: Record<AnswerSetStatus, string> = {
   regenerating: 'перегенерація',
 };
 
+const CHIP_BASE =
+  'inline-flex items-center gap-1 rounded-full px-2.5 py-[3px] text-[11px] font-bold';
+const CHIP_STYLES: Record<AnswerSetStatus, string> = {
+  accepted: 'bg-uq-green/25 text-[#7fe25a]',
+  edited: 'bg-uq-green/25 text-[#7fe25a]',
+  in_review: 'bg-uq-yellow/25 text-uq-accent',
+  generating: 'bg-uq-blue/25 text-[#8fc1ff]',
+  self_check: 'bg-uq-blue/25 text-[#8fc1ff]',
+  regenerating: 'bg-uq-blue/25 text-[#8fc1ff]',
+};
+
 function StatusChip({ question }: { question: Question }) {
-  if (!question.answerSet) return <span className="chip chip-none">без комплекту</span>;
+  if (!question.answerSet) {
+    return <span className={`${CHIP_BASE} bg-white/10 text-[#bbb]`}>без комплекту</span>;
+  }
   const status = question.answerSet.status;
-  return <span className={`chip chip-${status}`}>{STATUS_LABELS[status]}</span>;
+  return (
+    <span className={`${CHIP_BASE} ${CHIP_STYLES[status]}`}>{STATUS_LABELS[status]}</span>
+  );
 }
 
 interface QuestionFormState {
@@ -141,11 +157,13 @@ export function BankScreen() {
         </Link>
 
         {error && (
-          <div className="uq-error mt-4">
-            {error} ·{' '}
-            <button type="button" className="cursor-pointer border-none bg-transparent font-bold text-inherit underline" onClick={reload}>
-              повторити
-            </button>
+          <div className="mt-4">
+            <ErrorBox>
+              {error} ·{' '}
+              <button type="button" className="cursor-pointer border-none bg-transparent font-bold text-inherit underline" onClick={reload}>
+                повторити
+              </button>
+            </ErrorBox>
           </div>
         )}
         {!error && !bank && <div className="mt-8 text-center text-[#777]">Завантаження…</div>}
@@ -160,17 +178,17 @@ export function BankScreen() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
-                <button type="button" className="btn-purple" onClick={openCreate}>
+                <Button variant="purple" onClick={openCreate}>
                   ＋ Додати запитання
-                </button>
-                <button
-                  type="button"
-                  className="btn-purple opacity-70"
+                </Button>
+                <Button
+                  variant="purple"
+                  className="opacity-70"
                   title="Бекенд-таска 0013 ще в роботі"
                   onClick={() => toast('Генерація ШІ підключиться з бекенд-таскою 0013')}
                 >
                   ✨ Згенерувати відповіді (ШІ)
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -182,9 +200,9 @@ export function BankScreen() {
                   Додайте перше: текст, за бажанням — зображення та еталонна
                   відповідь для ШІ.
                 </div>
-                <button type="button" className="btn-purple mt-4" onClick={openCreate}>
+                <Button variant="purple" className="mt-4" onClick={openCreate}>
                   ＋ Додати запитання
-                </button>
+                </Button>
               </div>
             ) : (
               <div className="mt-5 overflow-hidden rounded-2xl bg-white shadow-[0_4px_18px_rgba(70,23,143,.10)]">
@@ -255,16 +273,15 @@ export function BankScreen() {
           onClose={() => setEditing(null)}
         >
           <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-3">
-            <textarea
-              className="uq-field min-h-[84px] resize-y"
+            <TextArea
+              className="min-h-[84px]"
               autoFocus
               required
               placeholder="Текст запитання (слово, фраза або факт)"
               value={form.text}
               onChange={(event) => setForm({ ...form, text: event.target.value })}
             />
-            <input
-              className="uq-field"
+            <TextField
               placeholder="Еталонна відповідь (опційно — тоді ШІ згенерує лише дистрактори)"
               value={form.referenceAnswer}
               onChange={(event) => setForm({ ...form, referenceAnswer: event.target.value })}
@@ -278,20 +295,19 @@ export function BankScreen() {
                     type="button"
                     title="Прибрати зображення"
                     onClick={() => setForm({ ...form, imageUrl: null })}
-                    className="absolute -top-2 -right-2 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full border-none bg-[var(--red)] text-[10px] text-white"
+                    className="absolute -top-2 -right-2 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full border-none bg-uq-red text-[10px] text-white"
                   >
                     ✕
                   </button>
                 </div>
               ) : (
-                <button
-                  type="button"
-                  className="btn-purple"
+                <Button
+                  variant="purple"
                   disabled={uploading}
                   onClick={() => fileInput.current?.click()}
                 >
                   {uploading ? 'Завантаження…' : '🖼 Додати зображення'}
-                </button>
+                </Button>
               )}
               <input
                 ref={fileInput}
@@ -310,9 +326,9 @@ export function BankScreen() {
               </div>
             )}
 
-            <button className="btn-green" type="submit" disabled={busy || !form.text.trim()}>
+            <Button type="submit" disabled={busy || !form.text.trim()}>
               {editing === 'new' ? 'Додати' : 'Зберегти'}
-            </button>
+            </Button>
           </form>
         </Modal>
       )}
@@ -325,12 +341,12 @@ export function BankScreen() {
             {deleting.answerSet ? ' разом з комплектом відповідей' : ''}.
           </p>
           <div className="mt-4 flex justify-end gap-2">
-            <button type="button" className="btn-purple" onClick={() => setDeleting(null)}>
+            <Button variant="purple" onClick={() => setDeleting(null)}>
               Скасувати
-            </button>
-            <button type="button" className="btn-danger" onClick={() => void confirmDelete()} disabled={busy}>
+            </Button>
+            <Button variant="danger" onClick={() => void confirmDelete()} disabled={busy}>
               Видалити
-            </button>
+            </Button>
           </div>
         </Modal>
       )}

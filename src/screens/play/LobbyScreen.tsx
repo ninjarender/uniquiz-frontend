@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DEMO_BANK_NAME, QUIZ_LEN } from '../../demo/data';
 import { useDemoGame } from '../../demo/engine';
+import { Button } from '../../shared/controls';
 import { FloatingShapes, HOME_SHAPES, Logo } from '../../shared/ui';
 
 /** Lobby: players joining live (bots), bank + mode, the demo user starts. */
@@ -43,7 +44,7 @@ export function LobbyScreen() {
 
       <div className="relative rounded-2xl bg-white/10 px-5 py-2 text-center">
         <div className="text-[10.5px] tracking-wide text-[#cdbfef] uppercase">Кімната</div>
-        <div className="text-[26px] font-extrabold tracking-[6px] text-[var(--accent)]">
+        <div className="text-[26px] font-extrabold tracking-[6px] text-uq-accent">
           {game.roomCode}
         </div>
       </div>
@@ -56,8 +57,8 @@ export function LobbyScreen() {
         {game.players.map((player) => (
           <span
             key={player.name}
-            className={`rounded-full px-4 py-2 text-[13px] font-bold ${player.isYou ? 'bg-[var(--accent)] text-[#3a2b00]' : 'bg-white/14 text-white'}`}
-            style={{ animation: 'cardIn .35s ease both' }}
+            className={`animate-card-in rounded-full px-4 py-2 text-[13px] font-bold ${player.isYou ? 'bg-uq-accent text-[#3a2b00]' : 'bg-white/14 text-white'}`}
+            
           >
             {player.name}
             {player.isYou && ' (ви)'}
@@ -69,9 +70,9 @@ export function LobbyScreen() {
         очікуємо гравців{dots}
       </div>
 
-      <button type="button" className="btn-green relative" onClick={start} disabled={game.players.length < 2}>
+      <Button className="relative" onClick={start} disabled={game.players.length < 2}>
         ▶ Почати гру ({game.players.length})
-      </button>
+      </Button>
       <div className="relative text-[10.5px] text-white/45">
         Старт у Multiplayer можливий від 2 гравців · у демо гру запускаєте ви
       </div>

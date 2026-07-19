@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDemoGame } from '../../demo/engine';
+import { Button } from '../../shared/controls';
 import { FloatingShapes, HOME_SHAPES } from '../../shared/ui';
 
 /** S2 - round outcome + interim leaderboard (trap gets its own reveal). */
@@ -26,7 +27,7 @@ export function RoundResultScreen() {
       ? 'Правильно!'
       : 'Неправильно';
   const icon = outcome.isCorrect ? '✓' : isTrap ? '🪤' : '✗';
-  const iconBg = outcome.isCorrect ? 'var(--green)' : 'var(--red)';
+  const iconBg = outcome.isCorrect ? 'var(--color-uq-green)' : 'var(--color-uq-red)';
 
   const next = () => {
     if (game.nextRound() === 'final') navigate('/play/final');
@@ -38,14 +39,14 @@ export function RoundResultScreen() {
       <FloatingShapes shapes={HOME_SHAPES} />
 
       <div
-        className="relative flex h-[96px] w-[96px] items-center justify-center rounded-full text-[44px] font-extrabold"
-        style={{ background: iconBg, boxShadow: `0 0 0 10px ${outcome.isCorrect ? 'rgba(38,137,12,.25)' : 'rgba(226,27,60,.22)'}`, animation: 'pulse 1.6s ease-in-out infinite' }}
+        className="animate-pulse-big relative flex h-[96px] w-[96px] items-center justify-center rounded-full text-[44px] font-extrabold"
+        style={{ background: iconBg, boxShadow: `0 0 0 10px ${outcome.isCorrect ? 'rgb(38 137 12 / 0.25)' : 'rgb(226 27 60 / 0.22)'}` }}
       >
         {icon}
       </div>
 
       <div className="relative text-[22px] font-extrabold">{heading}</div>
-      <div className="relative text-[14px] font-bold text-[var(--accent)]">
+      <div className="relative text-[14px] font-bold text-uq-accent">
         + {Math.round(outcome.gained)} балів
       </div>
 
@@ -63,16 +64,16 @@ export function RoundResultScreen() {
         </div>
       )}
 
-      <div className="relative w-full max-w-[330px] rounded-xl bg-[var(--dark)] p-3.5">
+      <div className="relative w-full max-w-[330px] rounded-xl bg-uq-dark p-3.5">
         <div className="mb-2 text-center text-[10px] tracking-wide text-[#c9b8ec] uppercase">
           Лідерборд
         </div>
         {leaderboard.map((player, index) => (
           <div
             key={player.name}
-            className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12.5px] ${player.isYou ? 'bg-[var(--purple)] outline-2 outline-[var(--accent)]' : ''}`}
+            className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12.5px] ${player.isYou ? 'bg-uq-purple outline-2 outline-uq-accent' : ''}`}
           >
-            <b className="w-4 text-[var(--accent)]">{index + 1}</b>
+            <b className="w-4 text-uq-accent">{index + 1}</b>
             <span className="flex-1 font-semibold">
               {player.name}
               {player.isYou && ' (ви)'}
@@ -82,9 +83,9 @@ export function RoundResultScreen() {
         ))}
       </div>
 
-      <button type="button" className="btn-green relative" onClick={next}>
+      <Button className="relative" onClick={next}>
         {game.currentIndex + 1 >= game.questions.length ? 'До підсумків →' : 'Далі →'}
-      </button>
+      </Button>
     </div>
   );
 }

@@ -24,19 +24,18 @@ export function TeacherLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex h-full bg-[#f4f1fb] text-[#222]">
-      <aside className="relative flex w-[230px] shrink-0 flex-col overflow-hidden bg-[var(--dark)] text-white">
+      <aside className="relative flex w-[230px] shrink-0 flex-col overflow-hidden bg-uq-dark text-white">
         <div
           aria-hidden
-          className="pointer-events-none absolute top-1/3 left-1/2 h-[260px] w-[260px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(123,47,247,.5),transparent_70%)]"
-          style={{ animation: 'glowPulse 5s ease-in-out infinite' }}
+          className="animate-glow-pulse pointer-events-none absolute top-1/3 left-1/2 h-[260px] w-[260px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgb(123_47_247/0.5),transparent_70%)]"
         />
         <FloatingShapes shapes={SIDEBAR_SHAPES} />
         <button
           type="button"
           onClick={() => navigate('/teacher')}
-          className="uq-logo relative cursor-pointer border-none bg-transparent px-5 py-6 text-left text-[24px]"
+          className="relative cursor-pointer border-none bg-transparent px-5 py-6 text-left text-[24px] font-extrabold tracking-[-1px] text-white"
         >
-          Uni<span>Quiz</span>
+          Uni<span className="animate-logo-glow text-uq-accent">Quiz</span>
         </button>
 
         <nav className="relative flex flex-col gap-1 px-3 text-[13.5px] font-semibold">
@@ -67,9 +66,9 @@ export function TeacherLayout({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="relative mt-auto flex items-center gap-2 border-t border-white/10 bg-black/25 px-3 py-3">
-          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#7b2ff7,#46178f)] text-[12px] font-extrabold">
+          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-linear-135 from-[#7b2ff7] to-uq-purple text-[12px] font-extrabold">
             {initials}
-            <span className="absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full border-2 border-[var(--dark)] bg-[#3ba55d]" />
+            <span className="absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full border-2 border-uq-dark bg-[#3ba55d]" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="truncate text-[12px] font-bold">{user?.email}</div>

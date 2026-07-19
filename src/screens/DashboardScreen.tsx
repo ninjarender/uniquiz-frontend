@@ -4,6 +4,7 @@ import type { FormEvent } from 'react';
 import { ApiError, BanksApi } from '../shared/api';
 import type { Bank } from '../shared/api';
 import { useAuth } from '../shared/auth';
+import { Button, ErrorBox, TextField } from '../shared/controls';
 import { Modal, useToast } from '../shared/ui';
 import { TeacherLayout } from './TeacherLayout';
 
@@ -101,25 +102,20 @@ export function DashboardScreen() {
       <div className="mx-auto max-w-[980px] px-7 py-7">
         {/* hero */}
         <section className="grad-bg relative overflow-hidden rounded-2xl p-7 text-white">
-          <span aria-hidden className="sh spin" style={{ fontSize: 80, right: 110, top: -20 }}>▲</span>
-          <span aria-hidden className="sh" style={{ fontSize: 60, right: 24, bottom: -16 }}>●</span>
-          <span aria-hidden className="sh" style={{ fontSize: 52, left: -12, bottom: -14 }}>■</span>
+          <span aria-hidden className="animate-float-spin pointer-events-none absolute leading-none font-extrabold text-white opacity-[0.13] select-none" style={{ fontSize: 80, right: 110, top: -20 }}>▲</span>
+          <span aria-hidden className="animate-float-rot pointer-events-none absolute leading-none font-extrabold text-white opacity-[0.13] select-none" style={{ fontSize: 60, right: 24, bottom: -16 }}>●</span>
+          <span aria-hidden className="animate-float-rot pointer-events-none absolute leading-none font-extrabold text-white opacity-[0.13] select-none" style={{ fontSize: 52, left: -12, bottom: -14 }}>■</span>
           <div className="absolute top-5 right-5 flex gap-2">
-            <button
-              type="button"
+            <Button
+              variant="purple"
               onClick={() => navigate('/live')}
-              className="btn-purple"
               title="Демо-муляж live-сесії (проєктор)"
             >
               ▶ Демо-сесія
-            </button>
-            <button
-              type="button"
-              onClick={() => { setName(''); setCreateOpen(true); }}
-              className="btn-green"
-            >
+            </Button>
+            <Button onClick={() => { setName(''); setCreateOpen(true); }}>
               ＋ Створити банк
-            </button>
+            </Button>
           </div>
           <h2 className="text-[22px] font-extrabold">
             Привіт{user ? `, ${user.email.split('@')[0]}` : ''}! 👋
@@ -142,8 +138,13 @@ export function DashboardScreen() {
 
         {/* bank grid */}
         {error && (
-          <div className="uq-error mt-6">
-            {error} · <button type="button" className="cursor-pointer border-none bg-transparent font-bold text-inherit underline" onClick={reload}>повторити</button>
+          <div className="mt-6">
+            <ErrorBox>
+              {error} ·{' '}
+              <button type="button" className="cursor-pointer border-none bg-transparent font-bold text-inherit underline" onClick={reload}>
+                повторити
+              </button>
+            </ErrorBox>
           </div>
         )}
         {!error && banks === null && (
@@ -157,9 +158,9 @@ export function DashboardScreen() {
               Створіть перший — і додавайте запитання, а ШІ згенерує варіанти
               відповідей.
             </div>
-            <button type="button" className="btn-purple mt-4" onClick={() => { setName(''); setCreateOpen(true); }}>
+            <Button variant="purple" className="mt-4" onClick={() => { setName(''); setCreateOpen(true); }}>
               ＋ Створити банк
-            </button>
+            </Button>
           </div>
         )}
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -171,8 +172,8 @@ export function DashboardScreen() {
               <article
                 key={bank.id}
                 onClick={() => navigate(`/teacher/banks/${bank.id}`)}
-                className="cursor-pointer rounded-2xl bg-white p-4 shadow-[0_4px_18px_rgba(70,23,143,.10)] transition-transform hover:-translate-y-0.5 hover:shadow-[0_10px_26px_rgba(70,23,143,.16)]"
-                style={{ animation: 'cardIn .3s ease both', animationDelay: `${index * 40}ms` }}
+                className="animate-card-in cursor-pointer rounded-2xl bg-white p-4 shadow-[0_4px_18px_rgba(70,23,143,.10)] transition-transform hover:-translate-y-0.5 hover:shadow-[0_10px_26px_rgba(70,23,143,.16)]"
+                style={{ animationDelay: `${index * 40}ms` }}
               >
                 <div className="flex items-start gap-3">
                   <div
@@ -233,17 +234,16 @@ export function DashboardScreen() {
       {createOpen && (
         <Modal title="Новий банк запитань" onClose={() => setCreateOpen(false)}>
           <form onSubmit={(event) => void submitCreate(event)} className="flex flex-col gap-3">
-            <input
-              className="uq-field"
+            <TextField
               autoFocus
               required
               placeholder="Назва, напр. «Бази даних — Модуль 1»"
               value={name}
               onChange={(event) => setName(event.target.value)}
             />
-            <button className="btn-green" type="submit" disabled={busy || !name.trim()}>
+            <Button type="submit" disabled={busy || !name.trim()}>
               Створити
-            </button>
+            </Button>
           </form>
         </Modal>
       )}
@@ -251,16 +251,15 @@ export function DashboardScreen() {
       {renaming && (
         <Modal title="Перейменувати банк" onClose={() => setRenaming(null)}>
           <form onSubmit={(event) => void submitRename(event)} className="flex flex-col gap-3">
-            <input
-              className="uq-field"
+            <TextField
               autoFocus
               required
               value={name}
               onChange={(event) => setName(event.target.value)}
             />
-            <button className="btn-purple" type="submit" disabled={busy || !name.trim()}>
+            <Button variant="purple" type="submit" disabled={busy || !name.trim()}>
               Зберегти
-            </button>
+            </Button>
           </form>
         </Modal>
       )}
@@ -273,12 +272,12 @@ export function DashboardScreen() {
             дію не можна скасувати.
           </p>
           <div className="mt-4 flex justify-end gap-2">
-            <button type="button" className="btn-purple" onClick={() => setDeleting(null)}>
+            <Button variant="purple" onClick={() => setDeleting(null)}>
               Скасувати
-            </button>
-            <button type="button" className="btn-danger" onClick={() => void confirmDelete()} disabled={busy}>
+            </Button>
+            <Button variant="danger" onClick={() => void confirmDelete()} disabled={busy}>
               Видалити
-            </button>
+            </Button>
           </div>
         </Modal>
       )}

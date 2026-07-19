@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 /* ---------- floating decorative shapes ---------- */
 
@@ -23,7 +23,8 @@ export function FloatingShapes({ shapes }: { shapes: ShapeSpec[] }) {
       {shapes.map((shape, index) => (
         <span
           key={index}
-          className={`sh${shape.spin ? ' spin' : ''}`}
+          aria-hidden
+          className={`pointer-events-none absolute leading-none font-extrabold text-white opacity-[0.13] select-none ${shape.spin ? 'animate-float-spin' : 'animate-float-rot'}`}
           style={{
             fontSize: shape.size,
             top: shape.top,
@@ -55,8 +56,8 @@ export const HOME_SHAPES: ShapeSpec[] = [
 
 export function Logo({ size = 34 }: { size?: number }) {
   return (
-    <div className="uq-logo" style={{ fontSize: size }}>
-      Uni<span>Quiz</span>
+    <div className="font-extrabold tracking-[-1px] text-white" style={{ fontSize: size }}>
+      Uni<span className="animate-logo-glow text-uq-accent">Quiz</span>
     </div>
   );
 }
@@ -83,7 +84,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      {message && <div className="uq-toast">{message}</div>}
+      {message && (
+        <div className="animate-card-in fixed bottom-[26px] left-1/2 z-90 -translate-x-1/2 rounded-[10px] border border-white/14 bg-uq-dark px-4.5 py-[11px] text-[13px] text-white shadow-[0_8px_30px_rgb(0_0_0/0.45)]">
+          {message}
+        </div>
+      )}
     </ToastContext.Provider>
   );
 }
@@ -105,12 +110,12 @@ export function Modal({
 }) {
   return (
     <div
-      className="uq-modal-bg"
+      className="fixed inset-0 z-80 flex items-center justify-center bg-[rgb(12_4_34/0.72)] p-5"
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <div className="uq-modal">
+      <div className="animate-card-in max-h-[90vh] w-[460px] max-w-full overflow-auto rounded-2xl border border-white/12 bg-uq-dark p-[22px] text-white">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-[16px] font-extrabold">{title}</h3>
           <button
@@ -127,3 +132,8 @@ export function Modal({
     </div>
   );
 }
+
+/* ---------- misc ---------- */
+
+/** Convenience for style objects with CSS custom properties. */
+export type CSSVars = CSSProperties & Record<`--${string}`, string | number>;
