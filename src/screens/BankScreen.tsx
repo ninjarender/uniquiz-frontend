@@ -11,6 +11,7 @@ import {
 } from '../shared/api';
 import type {
   AnswerSet,
+  AnswerSetPatch,
   AnswerSetStatus,
   BankDetailed,
   GenerationJob,
@@ -118,22 +119,34 @@ export function BankScreen() {
     }
   };
 
+  // Merge an updated set into bank state and recount ready questions.
+  const applySetUpdate = (updated: AnswerSet) => {
+    setBank((previous) => {
+      if (!previous) return previous;
+      const questions = previous.questions.map((question) =>
+        question.id === updated.questionId ? { ...question, answerSet: updated } : question,
+      );
+      const readyCount = questions.filter(
+        (question) =>
+          question.answerSet &&
+          ['accepted', 'edited'].includes(question.answerSet.status),
+      ).length;
+      return { ...previous, questions, readyCount };
+    });
+  };
+
+  // Errors are thrown through to the modal, which shows them next to the edit form.
+  const saveSet = async (set: AnswerSet, patch: AnswerSetPatch) => {
+    const updated = await AnswerSetsApi.update(set.id, patch);
+    applySetUpdate(updated);
+    toast('Правки збережено — комплект у статусі edited');
+  };
+
   const acceptSet = async (set: AnswerSet) => {
     setAccepting(true);
     try {
       const updated = await AnswerSetsApi.accept(set.id);
-      setBank((previous) => {
-        if (!previous) return previous;
-        const questions = previous.questions.map((question) =>
-          question.id === updated.questionId ? { ...question, answerSet: updated } : question,
-        );
-        const readyCount = questions.filter(
-          (question) =>
-            question.answerSet &&
-            ['accepted', 'edited'].includes(question.answerSet.status),
-        ).length;
-        return { ...previous, questions, readyCount };
-      });
+      applySetUpdate(updated);
       toast('Комплект прийнято — запитання готове до гри');
       setModeratingId(null);
     } catch (caught) {
@@ -505,6 +518,7 @@ export function BankScreen() {
           busy={accepting}
           onClose={() => setModeratingId(null)}
           onAccept={() => void acceptSet(moderating.answerSet!)}
+          onSave={(patch) => saveSet(moderating.answerSet!, patch)}
         />
       )}
 

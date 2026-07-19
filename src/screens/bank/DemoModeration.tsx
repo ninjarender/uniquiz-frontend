@@ -1,13 +1,14 @@
-import { useState } from 'react';
-import type { AnswerSet, Question } from '../../shared/api';
-import { Button, TextArea, TextField } from '../../shared/controls';
+import { useEffect, useState } from 'react';
+import { ApiError } from '../../shared/api';
+import type { AnswerSet, AnswerSetPatch, Question } from '../../shared/api';
+import { Button, ErrorBox, TextArea, TextField } from '../../shared/controls';
 import { Modal } from '../../shared/ui';
 import styles from './DemoModeration.module.css';
 
 /**
- * Moderation modal for an AI-generated answer set (task 0044).
- * Accept hits the real backend; save-edit and regenerate get wired
- * with tasks 0045-0046 (their buttons are stubbed until then).
+ * Moderation modal for an AI-generated answer set (tasks 0044-0045).
+ * Accept and save-edit hit the real backend; regenerate gets wired
+ * with task 0046 (its button is stubbed until then).
  */
 
 export function ModerationModal({
@@ -16,15 +17,67 @@ export function ModerationModal({
   busy,
   onClose,
   onAccept,
+  onSave,
 }: {
   question: Question;
   set: AnswerSet;
   busy: boolean;
   onClose: () => void;
   onAccept: () => void;
+  /** Rejections surface next to the edit form, not as a toast. */
+  onSave: (patch: AnswerSetPatch) => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<AnswerSet>(set);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  // Follow background updates of the set, but never clobber an edit in progress.
+  useEffect(() => {
+    if (!editing) setDraft(set);
+  }, [set, editing]);
+
+  // Contract AnswerSetPatch: only the fields that actually changed.
+  const buildPatch = (): AnswerSetPatch => {
+    const patch: AnswerSetPatch = {};
+    if (draft.options.some((option, index) => option !== set.options[index])) {
+      patch.options = draft.options.map((option) => option.trim());
+    }
+    if (draft.correctIndex !== set.correctIndex) patch.correctIndex = draft.correctIndex;
+    if ((draft.spareDistractor ?? '') !== (set.spareDistractor ?? '')) {
+      patch.spareDistractor = (draft.spareDistractor ?? '').trim();
+    }
+    if ((draft.explanation ?? '') !== (set.explanation ?? '')) {
+      patch.explanation = (draft.explanation ?? '').trim();
+    }
+    return patch;
+  };
+
+  const saveEdit = async () => {
+    const patch = buildPatch();
+    if (Object.keys(patch).length === 0) {
+      // Contract requires min one field — nothing changed, just leave edit mode.
+      setFormError(null);
+      setEditing(false);
+      return;
+    }
+    if (patch.options && patch.options.some((option) => option.length === 0)) {
+      setFormError('Усі 4 варіанти мають бути заповнені');
+      return;
+    }
+    setSaving(true);
+    setFormError(null);
+    try {
+      await onSave(patch);
+      setEditing(false);
+    } catch (caught) {
+      setFormError(
+        caught instanceof ApiError ? caught.message : 'Немає звʼязку з сервером',
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <Modal title="Модерація комплекту відповідей" onClose={onClose}>
@@ -101,14 +154,24 @@ export function ModerationModal({
         Самоперевірка ШІ: {set.selfCheckPassed ? '✅ збіг' : '⚠ розбіжність'}
       </div>
 
+      {editing && formError && <ErrorBox>{formError}</ErrorBox>}
+
       <div className={styles.actions}>
         {editing ? (
           <>
-            <Button variant="purple" onClick={() => { setDraft(set); setEditing(false); }}>
+            <Button
+              variant="purple"
+              disabled={saving}
+              onClick={() => {
+                setDraft(set);
+                setFormError(null);
+                setEditing(false);
+              }}
+            >
               Скасувати
             </Button>
-            <Button disabled title="Збереження правок підключиться з таскою 0045">
-              Зберегти правки
+            <Button disabled={saving} onClick={() => void saveEdit()}>
+              {saving ? 'Збереження…' : 'Зберегти правки'}
             </Button>
           </>
         ) : (

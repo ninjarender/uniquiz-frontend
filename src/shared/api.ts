@@ -163,9 +163,21 @@ export const QuestionsApi = {
     api<void>(`/questions/${questionId}`, { method: 'DELETE' }),
 };
 
+/** Host edit of an answer set; any patch moves it to status edited. */
+export interface AnswerSetPatch {
+  /** Exactly 4 options when present. */
+  options?: string[];
+  /** 0-3 when present. */
+  correctIndex?: number;
+  spareDistractor?: string;
+  explanation?: string;
+}
+
 export const AnswerSetsApi = {
   accept: (answerSetId: string) =>
     api<AnswerSet>(`/answer-sets/${answerSetId}/accept`, { method: 'POST' }),
+  update: (answerSetId: string, patch: AnswerSetPatch) =>
+    api<AnswerSet>(`/answer-sets/${answerSetId}`, { method: 'PATCH', body: patch }),
 };
 
 export const GenerationApi = {
