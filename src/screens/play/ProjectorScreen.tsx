@@ -4,6 +4,8 @@ import { BOT_NAMES, DEMO_BANK_NAME } from '../../demo/data';
 import { ApiError, RoomsApi, getHostNickname, getHostToken } from '../../shared/api';
 import type { RoomPublicInfo } from '../../shared/api';
 import { START_ERROR_TEXT, useGame } from '../../shared/game';
+import { serverNow } from '../../shared/server-clock';
+import type { ActiveQuestion } from '../../shared/ws-protocol';
 import { Button } from '../../shared/controls';
 import { FloatingShapes, Logo, useToast } from '../../shared/ui';
 import { ClosingBanner } from './ClosingBanner';
@@ -16,6 +18,60 @@ const PROJECTOR_SHAPES: ShapeSpec[] = [
   { glyph: '◆', size: 60, bottom: '10%', right: '6%', spin: true, delay: 2 },
   { glyph: '■', size: 44, top: '20%', right: '12%' },
 ];
+
+const HALL_TILE_ICONS = ['▲', '◆', '●', '■'];
+const HALL_TILE_COLORS = [
+  styles.hallTileRed,
+  styles.hallTileBlue,
+  styles.hallTileYellow,
+  styles.hallTileGreen,
+];
+
+/**
+ * The current question mirrored for the hall (task 0067): same snapshot the
+ * players got - no correctIndex, no isTrap, the same server-clock countdown.
+ */
+function HallQuestion({
+  question,
+  questionCount,
+}: {
+  question: ActiveQuestion;
+  questionCount: number;
+}) {
+  const totalMs = question.timeLimitSeconds * 1000;
+  const [leftMs, setLeftMs] = useState(totalMs);
+
+  useEffect(() => {
+    const deadline = question.questionStartTime + totalMs;
+    const timer = setInterval(
+      () => setLeftMs(Math.max(deadline - serverNow(), 0)),
+      200,
+    );
+    return () => clearInterval(timer);
+  }, [question.questionStartTime, totalMs]);
+
+  return (
+    <>
+      <div className={styles.meta}>
+        Питання {question.index + 1} / {questionCount} · ⏱{' '}
+        {Math.ceil(leftMs / 1000)} с
+      </div>
+      <div className={styles.hallQuestion}>{question.text}</div>
+      {question.imageUrl && (
+        <img src={question.imageUrl} alt="" className={styles.hallImage} />
+      )}
+      <div className={styles.hallAnswers}>
+        {question.options.map((option, index) => (
+          <div key={index} className={`${styles.hallTile} ${HALL_TILE_COLORS[index]}`}>
+            <span className={styles.hallTileIcon}>{HALL_TILE_ICONS[index]}</span>
+            {option}
+          </div>
+        ))}
+      </div>
+      <div className={styles.note}>Гравці відповідають на своїх екранах</div>
+    </>
+  );
+}
 
 /**
  * Host lobby for a real room: join link, settings + edit (task 0049).
@@ -124,9 +180,17 @@ function RealRoomLobby({ roomId }: { roomId: string }) {
     </div>
   );
 
-  // game_started flips the snapshot to in_game (task 0066): the projector
-  // leaves the lobby view; the live question for the hall arrives with 0067.
+  // game_started flips the snapshot to in_game (task 0066); the hall sees
+  // the same question the players do (task 0067).
   if (status === 'in_game') {
+    if (game.currentQuestion) {
+      return (
+        <HallQuestion
+          question={game.currentQuestion}
+          questionCount={game.gameStarted?.questionCount ?? settings?.questionCount ?? 0}
+        />
+      );
+    }
     return (
       <>
         <div className={styles.joinLine}>🎮 Гра триває</div>
@@ -137,11 +201,7 @@ function RealRoomLobby({ roomId }: { roomId: string }) {
           с на запитання
         </div>
         {playerPills}
-        <div className={styles.note}>
-          {game.currentQuestion
-            ? `Питання ${game.currentQuestion.index + 1} — гравці відповідають на своїх екранах`
-            : 'Очікуємо перше питання…'}
-        </div>
+        <div className={styles.note}>Очікуємо перше питання…</div>
       </>
     );
   }

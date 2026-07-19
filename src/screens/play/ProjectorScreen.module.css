@@ -116,5 +116,49 @@
   font-size: 12px;
   color: rgb(255 255 255 / 0.6);
 }
+
+/* Hall view of the current question (question_started, 0067). */
+.hallQuestion {
+  position: relative;
+  max-width: min(92vw, 900px);
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+.hallImage {
+  position: relative;
+  max-height: 26vh;
+  max-width: min(90vw, 640px);
+  border-radius: 12px;
+}
+.hallAnswers {
+  position: relative;
+  display: grid;
+  width: min(92vw, 860px);
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.hallTile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 14px;
+  padding: 16px 18px;
+  text-align: left;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  animation: var(--animate-card-in);
+}
+.hallTileIcon { font-size: 22px; }
+.hallTileRed { background: #e2445c; }
+.hallTileBlue { background: #2f6fd0; }
+.hallTileYellow { background: #d9a400; }
+.hallTileGreen { background: #2f9e5f; }
+
+@media (max-width: 640px) {
+  .hallAnswers { grid-template-columns: 1fr; }
+  .hallQuestion { font-size: 24px; }
+}
 .actionBtn { position: relative; }
 .startNote { margin-top: 8px; }
