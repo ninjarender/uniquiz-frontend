@@ -41,8 +41,12 @@ export function GameResume() {
     }
     if (hadRoom.current) return;
     hadRoom.current = true;
+    // Only the player zone follows the snapshot; the host's projector (/live)
+    // joins the room too but keeps its own screen (task 0055).
+    const inPlayZone =
+      location.pathname.startsWith('/play') || location.pathname.startsWith('/join');
     const target = SCREEN_BY_STATUS[game.room.status];
-    if (location.pathname !== target) navigate(target, { replace: true });
+    if (inPlayZone && location.pathname !== target) navigate(target, { replace: true });
   }, [game.room]);
 
   // A dead resumeToken means the seat is gone: clean up, back to joining.

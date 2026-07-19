@@ -239,6 +239,15 @@ export function getHostToken(roomId: string): string | null {
   return sessionStorage.getItem(hostTokenKey(roomId));
 }
 
+/* The creator's nickname from the room form - the projector joins with it (0055). */
+const hostNicknameKey = (roomId: string) => `uniquiz.hostNickname.${roomId}`;
+export function saveHostNickname(roomId: string, nickname: string): void {
+  sessionStorage.setItem(hostNicknameKey(roomId), nickname);
+}
+export function getHostNickname(roomId: string): string | null {
+  return sessionStorage.getItem(hostNicknameKey(roomId));
+}
+
 /** Leaderboard row — both in-game events and game_results.leaderboard. */
 export interface LeaderboardEntry {
   nickname: string;

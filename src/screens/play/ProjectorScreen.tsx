@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BOT_NAMES, DEMO_BANK_NAME } from '../../demo/data';
-import { ApiError, RoomsApi } from '../../shared/api';
+import { ApiError, RoomsApi, getHostNickname, getHostToken } from '../../shared/api';
 import type { RoomPublicInfo } from '../../shared/api';
+import { START_ERROR_TEXT, useGame } from '../../shared/game';
 import { Button } from '../../shared/controls';
 import { FloatingShapes, Logo, useToast } from '../../shared/ui';
 import { RoomSettingsModal } from './RoomSettingsModal';
@@ -15,15 +16,24 @@ const PROJECTOR_SHAPES: ShapeSpec[] = [
   { glyph: '■', size: 44, top: '20%', right: '12%' },
 ];
 
-/** Host lobby for a real room: join link, settings + edit (task 0049). Players arrive with WS (0052+). */
+/**
+ * Host lobby for a real room: join link, settings + edit (task 0049).
+ * The projector takes the host seat over WS (hostToken from room creation),
+ * so players are live and the start button drives start_game (task 0055).
+ */
 function RealRoomLobby({ roomId }: { roomId: string }) {
   const { toast } = useToast();
+  const game = useGame();
   const [room, setRoom] = useState<RoomPublicInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
 
   const joinUrl = `${window.location.origin}/join/${roomId}`;
-  const waiting = room?.status === 'waiting';
+  const live = game.room?.roomId === roomId ? game.room : null;
+  const settings = live?.settings ?? room?.settings;
+  const status = live?.status ?? room?.status;
+  const waiting = status === 'waiting';
+  const me = live?.players.find((player) => player.id === game.playerId);
 
   useEffect(() => {
     RoomsApi.publicInfo(roomId)
@@ -37,6 +47,31 @@ function RealRoomLobby({ roomId }: { roomId: string }) {
       });
   }, [roomId]);
 
+  // Take the host seat: resume the stored session (reload) or a fresh
+  // join_room with the creator's token and nickname from the room form.
+  useEffect(() => {
+    if (live) return;
+    const hostToken = getHostToken(roomId);
+    if (!hostToken) return;
+    if (!game.rejoin(roomId)) {
+      game.join({
+        roomId,
+        nickname: getHostNickname(roomId) ?? 'Ведучий',
+        hostToken,
+      });
+    }
+  }, [roomId, live, game.rejoin, game.join]);
+
+  // start_game rejections land here as toasts with human wording.
+  useEffect(() => {
+    return game.interceptErrors((wsError) => {
+      const text = START_ERROR_TEXT[wsError.code];
+      if (!text) return false;
+      toast(text);
+      return true;
+    });
+  }, [game.interceptErrors, toast]);
+
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(joinUrl);
@@ -47,7 +82,12 @@ function RealRoomLobby({ roomId }: { roomId: string }) {
   };
 
   if (error) return <div className={styles.joinLine}>{error}</div>;
-  if (!room) return <div className={styles.joinLine}>Завантаження кімнати…</div>;
+  if (!room && !live) return <div className={styles.joinLine}>Завантаження кімнати…</div>;
+
+  const canStart =
+    settings?.mode === 'solo'
+      ? live?.players.length === 1
+      : (live?.players.length ?? 0) >= 2;
 
   return (
     <>
@@ -61,34 +101,57 @@ function RealRoomLobby({ roomId }: { roomId: string }) {
         {joinUrl}
       </button>
       <div className={styles.meta}>
-        {room.bankName} ·{' '}
-        {room.settings.mode === 'solo' ? 'Solo' : 'Multiplayer'} ·{' '}
-        {room.settings.questionCount} запитань ·{' '}
-        {room.settings.timePerQuestionSeconds} с на запитання
+        {live?.bankName ?? room?.bankName} ·{' '}
+        {settings?.mode === 'solo' ? 'Solo' : 'Multiplayer'} ·{' '}
+        {settings?.questionCount} запитань ·{' '}
+        {settings?.timePerQuestionSeconds} с на запитання
       </div>
+
+      {live && (
+        <div className={styles.players}>
+          {live.players.map((player) => (
+            <span key={player.id} className={styles.playerPill}>
+              {player.isHost && '👑 '}
+              {player.nickname}
+            </span>
+          ))}
+        </div>
+      )}
+
       {waiting ? (
-        <Button
-          variant="purple"
-          className={styles.actionBtn}
-          onClick={() => setEditing(true)}
-        >
-          ⚙ Змінити налаштування
-        </Button>
+        <>
+          {me?.isHost && (
+            <Button className={styles.actionBtn} onClick={() => game.startGame()} disabled={!canStart}>
+              ▶ Почати гру ({live?.players.length ?? 0})
+            </Button>
+          )}
+          <Button
+            variant="purple"
+            className={styles.actionBtn}
+            onClick={() => setEditing(true)}
+          >
+            ⚙ Змінити налаштування
+          </Button>
+          {me?.isHost && !canStart && (
+            <div className={styles.note}>
+              {settings?.mode === 'solo'
+                ? 'Solo: у кімнаті має бути рівно 1 гравець — ви'
+                : 'Старт у Multiplayer можливий від 2 гравців'}
+            </div>
+          )}
+        </>
       ) : (
         <div className={styles.meta}>
-          {room.status === 'in_game'
+          {status === 'in_game'
             ? 'Гра йде — налаштування заблоковано'
             : 'Гру завершено'}
         </div>
       )}
-      <div className={styles.note}>
-        Гравці зʼявляться тут після підключення лобі до Socket.IO (таски 0051+)
-      </div>
 
-      {editing && waiting && (
+      {editing && waiting && settings && (
         <RoomSettingsModal
           roomId={roomId}
-          settings={room.settings}
+          settings={settings}
           onClose={() => setEditing(false)}
           onSaved={(info) => {
             setRoom(info);

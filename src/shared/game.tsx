@@ -65,6 +65,14 @@ export function findStoredSession(): { roomId: string; session: PlayerSession } 
   return null;
 }
 
+/** Human texts for start_game rejections (task 0055); shared by both host UIs. */
+export const START_ERROR_TEXT: Partial<Record<WsErrorPayload['code'], string>> = {
+  not_host: 'Почати гру може лише хост',
+  room_not_waiting: 'Гра вже йде або завершена',
+  start_conditions_not_met:
+    'Умови старту не виконані: Solo — рівно 1 гравець, Multiplayer — від 2',
+};
+
 /**
  * error handling contract (mechanism here, full code->UI map in task 0070):
  * the screen that initiated an event may register an interceptor and return

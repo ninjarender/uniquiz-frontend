@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { FormEvent } from 'react';
-import { ApiError, RoomsApi, saveHostToken } from '../../shared/api';
+import { ApiError, RoomsApi, saveHostNickname, saveHostToken } from '../../shared/api';
 import type { BankDetailed, RoomCreated, RoomMode } from '../../shared/api';
 import { Button, ErrorBox, TextField } from '../../shared/controls';
 import { Modal, useToast } from '../../shared/ui';
@@ -44,6 +44,7 @@ export function CreateRoomModal({
         settings: { mode, questionCount, timePerQuestionSeconds: timePerQuestion },
       });
       saveHostToken(room.roomId, room.hostToken);
+      saveHostNickname(room.roomId, nickname.trim());
       setCreated(room);
     } catch (caught) {
       if (caught instanceof ApiError && caught.statusCode === 409) {
