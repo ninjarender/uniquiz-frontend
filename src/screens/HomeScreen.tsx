@@ -134,9 +134,7 @@ export function HomeScreen() {
       </div>
       <button
         type="button"
-        onClick={() =>
-          toast('Кімнати гри зʼявляться разом із бекенд-тасками 0018+')
-        }
+        onClick={() => navigate('/play')}
         className="relative cursor-pointer rounded-full border-none bg-[linear-gradient(135deg,#2d0e5e,#5b1fb0)] px-6 py-3 text-[14px] font-bold text-white shadow-[0_3px_0_#1b0741] transition-transform hover:scale-[1.03] active:translate-y-[2px]"
       >
         <span className="mr-2 text-[var(--accent)]">➜</span> Приєднатися до гри

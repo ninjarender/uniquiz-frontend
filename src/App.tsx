@@ -2,9 +2,12 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 import type { ReactNode } from 'react';
 import { AuthProvider, useAuth } from './shared/auth';
 import { ToastProvider } from './shared/ui';
+import { DemoGameProvider } from './demo/engine';
 import { BankScreen } from './screens/BankScreen';
 import { DashboardScreen } from './screens/DashboardScreen';
 import { HomeScreen } from './screens/HomeScreen';
+import { JoinScreen } from './screens/play/JoinScreen';
+import { LobbyScreen } from './screens/play/LobbyScreen';
 
 /** Routes that require a logged-in host; waits for the token check. */
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -27,9 +30,12 @@ export default function App() {
   return (
     <ToastProvider>
       <AuthProvider>
+        <DemoGameProvider>
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<HomeScreen />} />
+            <Route path="/play" element={<JoinScreen />} />
+            <Route path="/play/lobby" element={<LobbyScreen />} />
             <Route
               path="/teacher"
               element={
@@ -49,6 +55,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
+        </DemoGameProvider>
       </AuthProvider>
     </ToastProvider>
   );
