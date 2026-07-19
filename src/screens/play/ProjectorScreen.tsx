@@ -106,6 +106,46 @@ function RealRoomLobby({ roomId }: { roomId: string }) {
       ? live?.players.length === 1
       : (live?.players.length ?? 0) >= 2;
 
+  const playerPills = live && (
+    <div className={styles.players}>
+      {live.players.map((player) => (
+        <span
+          key={player.id}
+          title={player.connected === false ? 'Втратив звʼязок' : undefined}
+          className={`${styles.playerPill} ${
+            player.connected === false ? styles.playerOffline : ''
+          }`}
+        >
+          {player.isHost && '👑 '}
+          {player.nickname}
+          {player.connected === false && ' 📴'}
+        </span>
+      ))}
+    </div>
+  );
+
+  // game_started flips the snapshot to in_game (task 0066): the projector
+  // leaves the lobby view; the live question for the hall arrives with 0067.
+  if (status === 'in_game') {
+    return (
+      <>
+        <div className={styles.joinLine}>🎮 Гра триває</div>
+        <div className={styles.meta}>
+          {live?.bankName ?? room?.bankName} ·{' '}
+          {game.gameStarted?.questionCount ?? settings?.questionCount} запитань ·{' '}
+          {game.gameStarted?.timePerQuestionSeconds ?? settings?.timePerQuestionSeconds}{' '}
+          с на запитання
+        </div>
+        {playerPills}
+        <div className={styles.note}>
+          {game.currentQuestion
+            ? `Питання ${game.currentQuestion.index + 1} — гравці відповідають на своїх екранах`
+            : 'Очікуємо перше питання…'}
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <div className={styles.joinLine}>Приєднуйтесь за посиланням:</div>
@@ -126,23 +166,7 @@ function RealRoomLobby({ roomId }: { roomId: string }) {
 
       <ClosingBanner />
 
-      {live && (
-        <div className={styles.players}>
-          {live.players.map((player) => (
-            <span
-              key={player.id}
-              title={player.connected === false ? 'Втратив звʼязок' : undefined}
-              className={`${styles.playerPill} ${
-                player.connected === false ? styles.playerOffline : ''
-              }`}
-            >
-              {player.isHost && '👑 '}
-              {player.nickname}
-              {player.connected === false && ' 📴'}
-            </span>
-          ))}
-        </div>
-      )}
+      {playerPills}
 
       {waiting ? (
         <>
@@ -167,11 +191,7 @@ function RealRoomLobby({ roomId }: { roomId: string }) {
           )}
         </>
       ) : (
-        <div className={styles.meta}>
-          {status === 'in_game'
-            ? 'Гра йде — налаштування заблоковано'
-            : 'Гру завершено'}
-        </div>
+        <div className={styles.meta}>Гру завершено</div>
       )}
 
       {editing && waiting && settings && (
