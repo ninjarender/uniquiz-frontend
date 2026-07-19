@@ -284,11 +284,12 @@ export function DashboardScreen() {
 
           <section className={styles.panel}>
             <h4 className={styles.panelTitle}>⚡ Швидкі дії</h4>
-            <button type="button" onClick={() => navigate('/live')} className={styles.quickBtn}>
+            <button type="button" data-ripple onClick={() => navigate('/live')} className={styles.quickBtn}>
               ▶ Запустити live-сесію (демо)
             </button>
             <button
               type="button"
+              data-ripple
               onClick={() => toast('Генерація ШІ підключиться з бекенд-таскою 0013')}
               className={styles.quickBtn}
             >
@@ -296,6 +297,7 @@ export function DashboardScreen() {
             </button>
             <button
               type="button"
+              data-ripple
               onClick={() => toast('Апеляції — академічна фаза (post-MVP)')}
               className={styles.quickBtn}
             >

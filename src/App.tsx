@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { AuthProvider, useAuth } from './shared/auth';
@@ -30,7 +31,29 @@ function RequireAuth({ children }: { children: ReactNode }) {
   return children;
 }
 
+/** Prototype-style click ripple on every element marked with data-ripple. */
+function useRipple() {
+  useEffect(() => {
+    const onClick = (event: MouseEvent) => {
+      const target = (event.target as HTMLElement).closest<HTMLElement>('[data-ripple]');
+      if (!target) return;
+      const rect = target.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      const span = document.createElement('span');
+      span.className = 'ripple';
+      span.style.width = span.style.height = `${size}px`;
+      span.style.left = `${event.clientX - rect.left - size / 2}px`;
+      span.style.top = `${event.clientY - rect.top - size / 2}px`;
+      target.appendChild(span);
+      setTimeout(() => span.remove(), 650);
+    };
+    document.addEventListener('click', onClick);
+    return () => document.removeEventListener('click', onClick);
+  }, []);
+}
+
 export default function App() {
+  useRipple();
   return (
     <ToastProvider>
       <AuthProvider>

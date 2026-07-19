@@ -15,6 +15,8 @@ export interface ShapeSpec {
   bottom?: string;
   spin?: boolean;
   delay?: number;
+  /** Animation duration in seconds (prototype varies 7-34s per shape). */
+  durationS?: number;
 }
 
 /** Background layer of floating shapes (design board: floatRot / floatSpin360). */
@@ -33,6 +35,7 @@ export function FloatingShapes({ shapes }: { shapes: ShapeSpec[] }) {
             right: shape.right,
             bottom: shape.bottom,
             animationDelay: shape.delay ? `${shape.delay}s` : undefined,
+            animationDuration: shape.durationS ? `${shape.durationS}s` : undefined,
           }}
         >
           {shape.glyph ?? SHAPES[index % SHAPES.length]}
@@ -43,14 +46,14 @@ export function FloatingShapes({ shapes }: { shapes: ShapeSpec[] }) {
 }
 
 export const HOME_SHAPES: ShapeSpec[] = [
-  { glyph: '▲', size: 90, top: '6%', left: '5%', spin: true },
-  { glyph: '●', size: 44, top: '26%', left: '13%' },
-  { glyph: '■', size: 64, top: '56%', left: '6%', spin: true, delay: 2 },
-  { glyph: '◆', size: 40, bottom: '8%', left: '20%' },
-  { glyph: '◆', size: 82, top: '8%', right: '6%', spin: true, delay: 1 },
-  { glyph: '■', size: 42, top: '38%', right: '13%' },
-  { glyph: '▲', size: 70, bottom: '10%', right: '7%', spin: true, delay: 3 },
-  { glyph: '●', size: 36, top: '64%', right: '20%' },
+  { glyph: '▲', size: 90, top: '6%', left: '5%', spin: true, durationS: 26 },
+  { glyph: '●', size: 44, top: '26%', left: '13%', durationS: 9 },
+  { glyph: '■', size: 64, top: '56%', left: '6%', spin: true, delay: 2, durationS: 30 },
+  { glyph: '◆', size: 40, bottom: '8%', left: '20%', durationS: 12 },
+  { glyph: '◆', size: 82, top: '8%', right: '6%', spin: true, delay: 1, durationS: 28 },
+  { glyph: '■', size: 42, top: '38%', right: '13%', durationS: 8 },
+  { glyph: '▲', size: 70, bottom: '10%', right: '7%', spin: true, delay: 3, durationS: 24 },
+  { glyph: '●', size: 36, top: '64%', right: '20%', durationS: 11 },
 ];
 
 /* ---------- logo ---------- */

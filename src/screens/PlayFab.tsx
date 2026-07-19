@@ -10,13 +10,14 @@ export function PlayFab() {
   return (
     <div className={styles.wrap}>
       {open && (
-        <button type="button" onClick={() => navigate('/play')} className={styles.playBtn}>
+        <button type="button" data-ripple onClick={() => navigate('/play')} className={styles.playBtn}>
           <span className={styles.playIcon}>▶</span> Грати
         </button>
       )}
       <button
         type="button"
         onClick={() => setOpen((previous) => !previous)}
+        data-ripple
         className={styles.pill}
       >
         🎮 Зіграти в гру{' '}

@@ -96,6 +96,7 @@ export function HomeScreen() {
           </button>
         </div>
 
+        <div className={styles.fields} key={tab}>
         <TextField
           ref={emailRef}
           type="email"
@@ -120,6 +121,7 @@ export function HomeScreen() {
         <Button type="submit" disabled={busy}>
           {busy ? '…' : tab === 'login' ? 'Увійти' : 'Створити акаунт'}
         </Button>
+        </div>
         <div className={styles.authNote}>В акаунті — ваші тести й банки запитань</div>
       </form>
 

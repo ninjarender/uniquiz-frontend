@@ -17,6 +17,7 @@ export function Button({ variant = 'green', className = '', type = 'button', ...
   return (
     <button
       type={type}
+      data-ripple
       className={`${styles.btn} ${VARIANT_CLASS[variant]} ${className}`}
       {...rest}
     />

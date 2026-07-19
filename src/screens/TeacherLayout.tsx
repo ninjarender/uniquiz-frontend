@@ -32,29 +32,32 @@ export function TeacherLayout({ children }: { children: ReactNode }) {
         </button>
 
         <nav className={styles.nav}>
-          <button type="button" className={`${styles.navItem} ${styles.navItemActive}`}>
-            <span>📚</span> Мої банки
+          <button type="button" data-ripple className={`${styles.navItem} ${styles.navItemActive}`}>
+            <span className={styles.navIcon}>📚</span> Мої банки
           </button>
           <button
             type="button"
             onClick={() => toast('Аналітика сесій — після ігрових тасок (0018+)')}
+            data-ripple
             className={styles.navItem}
           >
-            <span>📊</span> Аналітика
+            <span className={styles.navIcon}>📊</span> Аналітика
           </button>
           <button
             type="button"
             onClick={() => toast('Апеляції — академічна фаза (post-MVP)')}
+            data-ripple
             className={styles.navItem}
           >
-            <span>⚖️</span> Апеляції
+            <span className={styles.navIcon}>⚖️</span> Апеляції
           </button>
           <button
             type="button"
             onClick={() => toast('Налаштування акаунта — поза MVP')}
+            data-ripple
             className={styles.navItem}
           >
-            <span>⚙️</span> Налаштування
+            <span className={styles.navIcon}>⚙️</span> Налаштування
           </button>
         </nav>
 
@@ -67,6 +70,14 @@ export function TeacherLayout({ children }: { children: ReactNode }) {
             <div className={styles.profileName}>{user?.email}</div>
             <div className={styles.profileRole}>онлайн</div>
           </div>
+          <button
+            type="button"
+            title="Налаштування профілю"
+            onClick={() => toast('Налаштування профілю — поза MVP')}
+            className={styles.gearBtn}
+          >
+            <span className={styles.gearIcon}>⚙️</span>
+          </button>
           <button
             type="button"
             title="Вийти"
